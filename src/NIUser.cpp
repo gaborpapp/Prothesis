@@ -8,6 +8,7 @@
 using namespace std;
 using namespace ci;
 using namespace ci::app;
+using namespace mndl::ni;
 
 namespace cinder
 {
@@ -202,7 +203,7 @@ UserManager::UserManager()
 	mJoints.push_back( XN_SKEL_RIGHT_HIP      );  // will not be visible only for body line
 }
 
-void UserManager::setup()
+void UserManager::setup( const fs::path &path )
 {
 	mBrushes = loadTextures( "brushes" );
 
@@ -211,7 +212,10 @@ void UserManager::setup()
 	//	mFbo = gl::Fbo( 1024, 768, format );
 	mFbo = gl::Fbo( 640, 480, format );
 
-	mNI = OpenNI( OpenNI::Device());
+	if ( path.empty() )
+		mNI = OpenNI( OpenNI::Device());
+	else
+		mNI = OpenNI( path );
 
 	mNI.setMirrored( true );
 	mNI.setDepthAligned();
@@ -272,8 +276,8 @@ void UserManager::update()
 		for( Joints::const_iterator it = mJoints.begin(); it != mJoints.end(); ++it )
 		{
 			XnSkeletonJoint jointId = *it;
-			Vec2f jointPos = mNIUserTracker.getJoint2d( userId, jointId );
-			float conf     = mNIUserTracker.getJointConfidance( userId, jointId );
+			float conf = 0;
+			Vec2f jointPos = mNIUserTracker.getJoint2d( userId, jointId, &conf );
 
 			if( conf > .9 )
 			{

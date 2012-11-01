@@ -11,18 +11,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\NI.cpp" />
+    <ClCompile Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNI.cpp" />
+    <ClCompile Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNIUserTracker.cpp" />
     <ClCompile Include="..\src\NIUser.cpp" />
-    <ClCompile Include="..\src\NIUserTracker.cpp" />
     <ClCompile Include="..\src\PParams.cpp" />
     <ClCompile Include="..\src\ProthesisApp.cpp" />
     <ClCompile Include="..\src\Stroke.cpp" />
     <ClCompile Include="..\src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\NI.h" />
+    <ClInclude Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNI.h" />
+    <ClInclude Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNIBufferManager.h" />
+    <ClInclude Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNIUserTracker.h" />
     <ClInclude Include="..\include\NIUser.h" />
-    <ClInclude Include="..\include\NIUserTracker.h" />
     <ClInclude Include="..\include\PParams.h" />
     <ClInclude Include="..\include\Stroke.h" />
     <ClInclude Include="..\include\Utils.h" />

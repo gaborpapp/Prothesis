@@ -3,6 +3,7 @@
 #include "AntTweakBar.h"
 #include "NIUser.h"
 #include "PParams.h"
+#include "Utils.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -76,7 +77,13 @@ void ProthesisApp::setup()
 
 	try
 	{
+#if USE_KINECT_RECORD == 0
 		mUserManager.setup();
+#else
+		// use openni recording
+		fs::path recordingPath = getAssetPath( "prothesis-capture.oni" );
+		mUserManager.setup( recordingPath );
+#endif /* USE_KINECT_RECORD */
 	}
 	catch( ... )
 	{

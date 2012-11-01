@@ -13,14 +13,14 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="blocks">
+      <UniqueIdentifier>{acedb537-5937-4011-b7e4-3147713e3dd2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="blocks\Cinder-NI">
+      <UniqueIdentifier>{12fc7294-5f05-46de-85c8-dec872013154}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\NI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\NIUserTracker.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\PParams.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,14 +36,14 @@
     <ClCompile Include="..\src\Stroke.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNI.cpp">
+      <Filter>blocks\Cinder-NI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNIUserTracker.cpp">
+      <Filter>blocks\Cinder-NI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\NI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\NIUserTracker.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\PParams.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -55,6 +55,15 @@
     </ClInclude>
     <ClInclude Include="..\include\Stroke.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNI.h">
+      <Filter>blocks\Cinder-NI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNIBufferManager.h">
+      <Filter>blocks\Cinder-NI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNIUserTracker.h">
+      <Filter>blocks\Cinder-NI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

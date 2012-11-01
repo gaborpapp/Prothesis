@@ -5,9 +5,11 @@
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/Texture.h"
 
-#include "NI.h"
+#include "CiNI.h"
 #include "PParams.h"
 #include "Stroke.h"
+
+#define USE_KINECT_RECORD 0
 
 namespace cinder {
 
@@ -44,7 +46,7 @@ private:
 	JointStrokes     mJointStrokes;
 };
 
-class UserManager : UserTracker::Listener
+class UserManager : mndl::ni::UserTracker::Listener
 {
 typedef std::map< unsigned, std::shared_ptr< User > >            Users;
 typedef std::vector< std::pair< std::string, ci::gl::Texture > > Brushes;
@@ -52,7 +54,7 @@ typedef std::vector< XnSkeletonJoint >                           Joints;
 public:
 	UserManager();
 
-	void setup();
+	void setup( const ci::fs::path &path = "" );
 	void update();
 	void draw();
 
@@ -60,10 +62,10 @@ public:
 	void showParams( bool show );
 	void clearStrokes();
 
-	void newUser       ( UserTracker::UserEvent event );
-	void lostUser      ( UserTracker::UserEvent event );
-	void calibrationBeg( UserTracker::UserEvent event );
-	void calibrationEnd( UserTracker::UserEvent event );
+	void newUser       ( mndl::ni::UserTracker::UserEvent event );
+	void lostUser      ( mndl::ni::UserTracker::UserEvent event );
+	void calibrationBeg( mndl::ni::UserTracker::UserEvent event );
+	void calibrationEnd( mndl::ni::UserTracker::UserEvent event );
 
 private:
 	void  createUser ( unsigned userId );
@@ -74,8 +76,8 @@ private:
 	ci::gl::Texture getStrokeBrush ( XnSkeletonJoint jointId );
 
 private:
-	OpenNI      mNI;
-	UserTracker mNIUserTracker;
+	mndl::ni::OpenNI      mNI;
+	mndl::ni::UserTracker mNIUserTracker;
 
 	Joints  mJoints;
 	Brushes mBrushes;
