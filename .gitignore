@@ -10,3 +10,7 @@
 *.lai
 *.la
 *.a
+
+# scons
+.sconsign.dblite
+scons/Prothesis*
