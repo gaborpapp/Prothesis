@@ -1,0 +1,13 @@
+env = Environment()
+
+env['APP_TARGET'] = 'Prothesis'
+env['APP_SOURCES'] = ['ProthesisApp.cpp', 'NIUser.cpp', 'PParams.cpp',
+					'Stroke.cpp', 'Utils.cpp']
+
+env['ASSETS'] = ['strokes/*']
+env['DEBUG'] = 0
+
+env = SConscript('../../../blocks/Cinder-NI/scons/SConscript',
+	exports = 'env')
+
+SConscript('../../../scons/SConscript', exports = 'env')
