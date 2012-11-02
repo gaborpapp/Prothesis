@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include "cinder/app/App.h"
 #include "cinder/Color.h"
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/Texture.h"
@@ -9,6 +10,7 @@
 #include "PParams.h"
 #include "Stroke.h"
 
+#define USE_KINECT 1
 #define USE_KINECT_RECORD 0
 
 namespace cinder {
@@ -66,6 +68,10 @@ public:
 	void lostUser      ( mndl::ni::UserTracker::UserEvent event );
 	void calibrationBeg( mndl::ni::UserTracker::UserEvent event );
 	void calibrationEnd( mndl::ni::UserTracker::UserEvent event );
+
+	bool mouseDown( ci::app::MouseEvent event );
+	bool mouseDrag( ci::app::MouseEvent event );
+	bool mouseUp( ci::app::MouseEvent event );
 
 private:
 	void  createUser ( unsigned userId );

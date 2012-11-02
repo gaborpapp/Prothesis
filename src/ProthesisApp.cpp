@@ -48,10 +48,6 @@ ProthesisApp::ProthesisApp()
 
 void ProthesisApp::setup()
 {
-	GLint n;
-	glGetIntegerv( GL_MAX_COLOR_ATTACHMENTS_EXT, &n );
-	console() << "max fbo color attachments " << n << endl;
-
 	gl::disableVerticalSync();
 
 	// params
@@ -85,11 +81,15 @@ void ProthesisApp::setup()
 		mUserManager.setup( recordingPath );
 #endif /* USE_KINECT_RECORD */
 	}
-	catch( ... )
+	catch( ... ) // TODO: catching std::exception or ci::Exception does not work
 	{
-		console() << "Could not open Kinect" << endl;
+		console() << "Could not open Kinect "  << endl;
 		quit();
 	}
+
+	registerMouseDown( &mUserManager, &UserManager::mouseDown );
+	registerMouseUp( &mUserManager, &UserManager::mouseUp );
+	registerMouseDrag( &mUserManager, &UserManager::mouseDrag );
 
 	setFullScreen( true );
 	hideCursor();
@@ -168,5 +168,5 @@ void ProthesisApp::draw()
 	params::InterfaceGl::draw();
 }
 
-CINDER_APP_BASIC( ProthesisApp, RendererGl( RendererGl::AA_NONE ))
+CINDER_APP_BASIC( ProthesisApp, RendererGl() )
 

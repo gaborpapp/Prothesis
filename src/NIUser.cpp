@@ -205,13 +205,14 @@ UserManager::UserManager()
 
 void UserManager::setup( const fs::path &path )
 {
-	mBrushes = loadTextures( "brushes" );
+	mBrushes = loadTextures( "strokes" );
 
 	gl::Fbo::Format format;
 	format.setWrap( GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE );
 	//	mFbo = gl::Fbo( 1024, 768, format );
 	mFbo = gl::Fbo( 640, 480, format );
 
+#if USE_KINECT
 	if ( path.empty() )
 		mNI = OpenNI( OpenNI::Device());
 	else
@@ -222,6 +223,7 @@ void UserManager::setup( const fs::path &path )
 	mNI.start();
 	mNIUserTracker = mNI.getUserTracker();
 	mNIUserTracker.addListener( this );
+#endif
 
 	mParams = params::PInterfaceGl( "Kinect", Vec2i( 300, 400 ) );
 	mParams.addPersistentSizeAndPosition();
@@ -262,6 +264,7 @@ void UserManager::setup( const fs::path &path )
 
 void UserManager::update()
 {
+#if USE_KINECT
 	mNIUserTracker.setSmoothing( mSkeletonSmoothing );
 
 	vector< unsigned > users = mNIUserTracker.getUsers();
@@ -285,6 +288,7 @@ void UserManager::update()
 			}
 		}
 	}
+#endif
 }
 
 void UserManager::draw()
@@ -297,6 +301,7 @@ void UserManager::draw()
 //	gl::enableDepthWrite();
 	gl::enableAlphaBlending();
 
+#if USE_KINECT
 	if( mNI.checkNewVideoFrame())
 	{
 		Surface NISurface = mNI.getVideoImage();
@@ -305,6 +310,7 @@ void UserManager::draw()
 
 	if( mNITexture && mVideoShow )
 		gl::draw( mNITexture, mOutputRect );
+#endif
 
 	for( Users::iterator it = mUsers.begin(); it != mUsers.end(); ++it )
 	{
@@ -443,6 +449,28 @@ void UserManager::lostUser( UserTracker::UserEvent event )
 {
 	console() << "lost user: " << event.id << endl;
 	destroyUser( event.id );
+}
+
+bool UserManager::mouseDown( ci::app::MouseEvent event )
+{
+	mUsers[ 0 ] = shared_ptr< User >( new User( this ));
+	mUsers[ 0 ]->addStroke( XN_SKEL_LEFT_HAND );
+
+	return true;
+}
+
+bool UserManager::mouseDrag( ci::app::MouseEvent event )
+{
+	mUsers[ 0 ]->update( XN_SKEL_LEFT_HAND, event.getPos() );
+
+	return true;
+}
+
+bool UserManager::mouseUp( ci::app::MouseEvent event )
+{
+	destroyUser( 0 );
+
+	return true;
 }
 
 } // namespace cinder
