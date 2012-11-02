@@ -32,9 +32,12 @@ class ProthesisApp : public AppBasic
 	private:
 		UserManager mUserManager;
 
+		gl::Fbo mFbo;
+
 		// params
 		params::PInterfaceGl mParams;
 		float                mFps;
+		float                mFadeOutStrength;
 };
 
 void ProthesisApp::prepareSettings(Settings *settings)
@@ -70,6 +73,9 @@ void ProthesisApp::setup()
 	mParams.addPersistentSizeAndPosition();
 	mParams.addText( "Debug" );
 	mParams.addParam( "Fps", &mFps, "", true );
+	mParams.addSeparator();
+	mParams.addPersistentParam( "Fade strength", &mFadeOutStrength, 0.001f,
+			"min=0. max=1. step=0.001" );
 
 	try
 	{
@@ -96,6 +102,18 @@ void ProthesisApp::setup()
 
 	mParams.hide();
 	mUserManager.showParams( false );
+
+	gl::Fbo::Format format;
+	format.enableDepthBuffer( false );
+	//format.setSamples( 4 );
+	format.setColorInternalFormat( GL_RGBA32F_ARB );
+	mFbo = gl::Fbo( 2048, 1536, format );
+
+	mUserManager.setFbo( mFbo );
+
+	mFbo.bindFramebuffer();
+	gl::clear( Color::white() );
+	mFbo.unbindFramebuffer();
 }
 
 void ProthesisApp::shutdown()
@@ -134,7 +152,12 @@ void ProthesisApp::keyDown(KeyEvent event)
 	}
 
 	if( event.getCode() == KeyEvent::KEY_SPACE )
+	{
 		mUserManager.clearStrokes();
+		mFbo.bindFramebuffer();
+		gl::clear( Color::white() );
+		mFbo.unbindFramebuffer();
+	}
 	else if( event.getCode() == KeyEvent::KEY_ESCAPE )
 		quit();
 }
@@ -161,9 +184,25 @@ void ProthesisApp::update()
 
 void ProthesisApp::draw()
 {
-	gl::clear( Color::white() );
+	mFbo.bindFramebuffer();
+	gl::setMatricesWindow( mFbo.getSize(), false );
+	gl::setViewport( mFbo.getBounds() );
 
 	mUserManager.draw();
+
+	gl::enableAlphaBlending();
+	gl::color( ColorA::gray( 1.f, mFadeOutStrength ) );
+	gl::drawSolidRect( mFbo.getBounds() );
+	gl::color( Color::white() );
+	gl::disableAlphaBlending();
+
+	mFbo.unbindFramebuffer();
+
+	gl::setMatricesWindow( getWindowSize() );
+	gl::setViewport( getWindowBounds() );
+
+	gl::clear( Color::black() );
+	gl::draw( mFbo.getTexture(), getWindowBounds() );
 
 	params::InterfaceGl::draw();
 }

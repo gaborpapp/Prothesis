@@ -10,7 +10,7 @@
 #include "PParams.h"
 #include "Stroke.h"
 
-#define USE_KINECT 1
+#define USE_KINECT 0
 #define USE_KINECT_RECORD 0
 
 namespace cinder {
@@ -72,6 +72,12 @@ public:
 	bool mouseDown( ci::app::MouseEvent event );
 	bool mouseDrag( ci::app::MouseEvent event );
 	bool mouseUp( ci::app::MouseEvent event );
+
+	void setFbo( const ci::gl::Fbo &fbo )
+	{
+		mFbo = fbo;
+		setBounds( mFbo.getBounds());
+	}
 
 private:
 	void  createUser ( unsigned userId );

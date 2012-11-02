@@ -32,6 +32,7 @@ void Stroke::update( Vec2f pos )
 		mPos = pos;
 		mVel = Vec2f::zero();
 		mU = 0.f;
+		mLastDrawn = 0;
 	}
 
 	Vec2f d = mPos - pos; // displacement from the cursor
@@ -60,22 +61,44 @@ void Stroke::draw()
 
 	gl::enable( GL_TEXTURE_2D );
 	mBrush.bind();
-	glBegin( GL_QUAD_STRIP );
-	size_t n = mPoints.size();
+	gl::color( ColorA::white() );
 
-	for( list< StrokePoint >::const_iterator i = mPoints.begin(); i != mPoints.end(); ++i )
+	// subdivison to overcome texturing artifacts
+	size_t subdivCount = 8;
+	float coeffStep = 2.f / subdivCount;
+	float coeff = -1.f;
+
+	for ( size_t i = 0; i < subdivCount; i++ )
 	{
-		const StrokePoint *s = &(*i);
-		glTexCoord2f( s->u, 0 );
-		gl::vertex( s->p + s->w );
-		glTexCoord2f( s->u, 1 );
-		gl::vertex( s->p - s->w );
+		float c0 = coeff;
+		float c1 = coeff + coeffStep;
+		float v0 = c0 *.5f + .5f;
+		float v1 = c1 *.5f + .5f;
+		if ( mPoints.size() >= 2 )
+		{
+			glBegin( GL_QUAD_STRIP );
+			// add only the stroke points not drawn already
+			for( vector< StrokePoint >::const_iterator i = mPoints.begin() + mLastDrawn;
+					i != mPoints.end(); ++i )
+			{
+				const StrokePoint *s = &(*i);
+				glTexCoord2f( s->u, v0 );
+				gl::vertex( s->p + c0 * s->w );
+				glTexCoord2f( s->u, v1 );
+				gl::vertex( s->p + c1 * s->w );
+			}
+			glEnd();
+		}
+		coeff += coeffStep;
 	}
 
-	glEnd();
 	mBrush.unbind();
-
 	gl::disable( GL_TEXTURE_2D );
+
+	gl::disableWireframe();
+
+	if ( !mPoints.empty() )
+		mLastDrawn = mPoints.size() - 1;
 }
 
 void Stroke::setActive( bool active )

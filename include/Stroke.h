@@ -1,6 +1,6 @@
 #pragma once
 
-#include <list>
+#include <vector>
 
 #include "cinder/Vector.h"
 #include "cinder/app/App.h"
@@ -51,7 +51,7 @@ class Stroke
 
 		bool mActive;
 
-		std::list<StrokePoint> mPoints;
+		std::vector<StrokePoint> mPoints;
 
 		ci::Vec2f mPos;     // spring position
 		ci::Vec2f mVel;     // velocity
@@ -64,6 +64,7 @@ class Stroke
 		float     mMaxVelocity;
 
 		float     mU; // u texture coord
+		size_t    mLastDrawn; // index of the last drawn point
 
 		ci::Vec2i       mWindowSize;
 		ci::gl::Texture mBrush;

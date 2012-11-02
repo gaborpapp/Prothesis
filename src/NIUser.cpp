@@ -213,10 +213,12 @@ void UserManager::setup( const fs::path &path )
 		it->second.unbind();
 	}
 
+	/*
 	gl::Fbo::Format format;
 	format.setWrap( GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE );
 	//	mFbo = gl::Fbo( 1024, 768, format );
-	mFbo = gl::Fbo( 640, 480, format );
+	//mFbo = gl::Fbo( 640, 480, format );
+	*/
 
 #if USE_KINECT
 	if ( path.empty() )
@@ -467,7 +469,8 @@ bool UserManager::mouseDown( ci::app::MouseEvent event )
 
 bool UserManager::mouseDrag( ci::app::MouseEvent event )
 {
-	mUsers[ 0 ]->update( XN_SKEL_LEFT_HAND, event.getPos() );
+	RectMapping mapping( app::getWindowBounds(), mFbo.getBounds() );
+	mUsers[ 0 ]->update( XN_SKEL_LEFT_HAND, mapping.map( event.getPos() ) );
 
 	return true;
 }
