@@ -91,8 +91,8 @@ void ProthesisApp::setup()
 	registerMouseUp( &mUserManager, &UserManager::mouseUp );
 	registerMouseDrag( &mUserManager, &UserManager::mouseDrag );
 
-	setFullScreen( true );
-	hideCursor();
+	//setFullScreen( true );
+	//hideCursor();
 
 	mParams.hide();
 	mUserManager.showParams( false );
@@ -161,7 +161,7 @@ void ProthesisApp::update()
 
 void ProthesisApp::draw()
 {
-	gl::clear( Color::black() );
+	gl::clear( Color::white() );
 
 	mUserManager.draw();
 

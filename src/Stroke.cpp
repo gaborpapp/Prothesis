@@ -31,6 +31,7 @@ void Stroke::update( Vec2f pos )
 	{
 		mPos = pos;
 		mVel = Vec2f::zero();
+		mU = 0.f;
 	}
 
 	Vec2f d = mPos - pos; // displacement from the cursor
@@ -40,6 +41,7 @@ void Stroke::update( Vec2f pos )
 	mVel  = mVel + a;
 	mVel *= mDamping;
 	mPos += mVel;
+	mU += mVel.length();
 
 	Vec2f ang( -mVel.y, mVel.x );
 	ang.normalize();
@@ -47,7 +49,7 @@ void Stroke::update( Vec2f pos )
 	Vec2f scaledVel = mVel * Vec2f( mWindowSize );
 	float s = math<float>::clamp( scaledVel.length(), 0, mMaxVelocity );
 	ang *= mStrokeMinWidth + ( mStrokeMaxWidth - mStrokeMinWidth ) * easeInQuad( s / mMaxVelocity );
-	mPoints.push_back( StrokePoint( mPos * Vec2f( mWindowSize ), ang ));
+	mPoints.push_back( StrokePoint( mPos * Vec2f( mWindowSize ), ang, mU ) );
 }
 
 void Stroke::draw()
@@ -56,27 +58,24 @@ void Stroke::draw()
 	 || ! mBrush )
 		return;
 
-//	gl::enable( GL_TEXTURE_2D );
+	gl::enable( GL_TEXTURE_2D );
 	mBrush.bind();
 	glBegin( GL_QUAD_STRIP );
 	size_t n = mPoints.size();
-	float step = 1.0f / n;
-	float u = 0.0f;
 
 	for( list< StrokePoint >::const_iterator i = mPoints.begin(); i != mPoints.end(); ++i )
 	{
 		const StrokePoint *s = &(*i);
-		glTexCoord2f( u, 0 );
+		glTexCoord2f( s->u, 0 );
 		gl::vertex( s->p + s->w );
-		glTexCoord2f( u, 1 );
+		glTexCoord2f( s->u, 1 );
 		gl::vertex( s->p - s->w );
-		u += step;
 	}
 
 	glEnd();
 	mBrush.unbind();
 
-//	gl::disable( GL_TEXTURE_2D );
+	gl::disable( GL_TEXTURE_2D );
 }
 
 void Stroke::setActive( bool active )

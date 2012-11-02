@@ -206,6 +206,12 @@ UserManager::UserManager()
 void UserManager::setup( const fs::path &path )
 {
 	mBrushes = loadTextures( "strokes" );
+	for ( Brushes::iterator it = mBrushes.begin(); it != mBrushes.end(); ++it )
+	{
+		it->second.bind();
+		it->second.setWrap( GL_REPEAT, GL_REPEAT );
+		it->second.unbind();
+	}
 
 	gl::Fbo::Format format;
 	format.setWrap( GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE );
@@ -238,8 +244,8 @@ void UserManager::setup( const fs::path &path )
 	mParams.addText("Stroke");
 	mParams.addPersistentParam( "Stiffness"          , &mK             , 0.06f, "min=   0.01 max=   0.2   step= 0.01" );
 	mParams.addPersistentParam( "Damping"            , &mDamping       , 0.7f , "min=   0.25 max=   0.999 step= 0.02" );
-	mParams.addPersistentParam( "Stroke min"         , &mStrokeMinWidth, 6.0f , "min=   0    max=  50     step= 0.5"  );
-	mParams.addPersistentParam( "Stroke width"       , &mStrokeMaxWidth, 16.0f, "min= -50    max=  50     step= 0.5"  );
+	mParams.addPersistentParam( "Stroke min"         , &mStrokeMinWidth, 100.0f , "min=   0    max= 500     step= 0.5"  );
+	mParams.addPersistentParam( "Stroke width"       , &mStrokeMaxWidth, 160.0f, "min= -500    max= 500     step= 0.5"  );
 	mParams.addPersistentParam( "Velocity max"       , &mMaxVelocity   , 40.0f, "min=   1    max= 100"                );
 	mParams.addSeparator();
 

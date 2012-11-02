@@ -41,11 +41,12 @@ class Stroke
 	private:
 		struct StrokePoint
 		{
-			StrokePoint( ci::Vec2f _p, ci::Vec2f _w ) :
-				p( _p ), w( _w ) {}
+			StrokePoint( ci::Vec2f _p, ci::Vec2f _w, float _u ) :
+				p( _p ), w( _w ), u( _u ) {}
 
 			ci::Vec2f p;
 			ci::Vec2f w;
+			float u;
 		};
 
 		bool mActive;
@@ -61,6 +62,8 @@ class Stroke
 		float     mStrokeMinWidth;
 		float     mStrokeMaxWidth;
 		float     mMaxVelocity;
+
+		float     mU; // u texture coord
 
 		ci::Vec2i       mWindowSize;
 		ci::gl::Texture mBrush;
