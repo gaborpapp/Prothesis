@@ -32,13 +32,13 @@ void Calibrate::setup()
 {
 	mParams = params::PInterfaceGl( "Calibrate", Vec2i( 200, 250 ) );
 	mParams.addPersistentSizeAndPosition();
-	mParams.addText( "Translate", "Left mouse button" );
+	mParams.addText( "Translate", "help='Left mouse button'" );
 	mParams.addPersistentParam( "Translate X" , &mTranslateX    , 0.0f, getMinMaxStepString<float>( MIN_TRANSLATE, MAX_TRANSLATE, STEP_TRANSLATE ));
 	mParams.addPersistentParam( "Translate Y" , &mTranslateY    , 0.0f, getMinMaxStepString<float>( MIN_TRANSLATE, MAX_TRANSLATE, STEP_TRANSLATE ));
-	mParams.addText( "Scale", "Right mouse button" );
+	mParams.addText( "Scale", "help='Right mouse button'" );
 	mParams.addPersistentParam( "Scale X"     , &mScaleX        , 1.0f, getMinMaxStepString<float>( MIN_SCALE    , MAX_SCALE    , STEP_SCALE     ));
 	mParams.addPersistentParam( "Scale Y"     , &mScaleY        , 1.0f, getMinMaxStepString<float>( MIN_SCALE    , MAX_SCALE    , STEP_SCALE     ));
-	mParams.addText( "Cover", "Middle mouse button" );
+	mParams.addText( "Cover", "help='Middle mouse button'" );
 	mParams.addPersistentParam( "Cover Left"  , &mCoverLeft     , 0   , getMinMaxStepString<int  >( MIN_COVER    , MAX_COVER    , STEP_COVER     ));
 	mParams.addPersistentParam( "Cover Right" , &mCoverRight    , 0   , getMinMaxStepString<int  >( MIN_COVER    , MAX_COVER    , STEP_COVER     ));
 	mParams.addPersistentParam( "Cover Top"   , &mCoverTop      , 0   , getMinMaxStepString<int  >( MIN_COVER    , MAX_COVER    , STEP_COVER     ));
