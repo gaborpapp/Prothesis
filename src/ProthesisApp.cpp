@@ -1,12 +1,14 @@
 #include "cinder/app/AppBasic.h"
 #include "cinder/Cinder.h"
 #include "cinder/gl/gl.h"
+#include "cinder/gl/GlslProg.h"
 #include "cinder/Rect.h"
 #include "AntTweakBar.h"
 #include "NIUser.h"
 #include "Calibrate.h"
 #include "PParams.h"
 #include "Utils.h"
+#include "Resources.h"
 #include "StrokeManager.h"
 
 using namespace ci;
@@ -40,6 +42,10 @@ class ProthesisApp : public AppBasic
 		Calibrate     mCalibrate;
 
 		gl::Fbo mFbo;
+		gl::GlslProg mBlendShader;
+		int mFboPingPongId; // 1 or 2
+
+		void clearFbo();
 
 		enum MouseAction
 		{
@@ -88,7 +94,7 @@ void ProthesisApp::setup()
 	mParams.addText( "Debug" );
 	mParams.addParam( "Fps", &mFps, "", true );
 	mParams.addSeparator();
-	mParams.addPersistentParam( "Fade strength", &mFadeOutStrength, 0.001f, "min=0. max=1. step=0.001" );
+	mParams.addPersistentParam( "Fade strength", &mFadeOutStrength, 0.995f, "min=0. max=1. step=0.001" );
 
 	vector< string > mouseActions;
 	mouseActions.push_back( "None"      );
@@ -117,24 +123,34 @@ void ProthesisApp::setup()
 // 	registerMouseUp( &mUserManager, &UserManager::mouseUp );
 // 	registerMouseDrag( &mUserManager, &UserManager::mouseDrag );
 
-	//setFullScreen( true );
-	//hideCursor();
-
 	gl::Fbo::Format format;
 	format.enableDepthBuffer( false );
 	format.setSamples( 4 );
 	format.setColorInternalFormat( GL_RGBA32F_ARB );
-	mFbo = gl::Fbo( 2048, 1536, format );
+	format.enableColorBuffer( true, 3 );
+	mFbo = gl::Fbo( 1024, 768, format );
+	clearFbo();
 
 	mUserManager.setFbo( mFbo );
 
 	StrokeManager::setup( mFbo.getSize());
 	mCalibrate.setup();
 
-	mFbo.bindFramebuffer();
-	gl::clear( Color::white() );
-	mFbo.unbindFramebuffer();
+	try
+	{
+		mBlendShader = gl::GlslProg( loadResource( RES_STROKE_VERT ),
+									 loadResource( RES_STROKE_FRAG ) );
+	}
+	catch( const std::exception &e )
+	{
+		app::console() << e.what() << std::endl;
+	}
+	mBlendShader.bind();
+	mBlendShader.uniform( "background", 0 );
+	mBlendShader.uniform( "brush", 1 );
+	mBlendShader.unbind();
 
+	//setFullScreen( true );
 	showAllParams( false );
 }
 
@@ -180,9 +196,7 @@ void ProthesisApp::keyDown( KeyEvent event )
 
 		case KeyEvent::KEY_SPACE:
 			mUserManager.clearStrokes();
-			mFbo.bindFramebuffer();
-			gl::clear( Color::white() );
-			mFbo.unbindFramebuffer();
+			clearFbo();
 			break;
 
 		case KeyEvent::KEY_ESCAPE:
@@ -225,6 +239,17 @@ void ProthesisApp::mouseUp(MouseEvent event)
 	}
 }
 
+void ProthesisApp::clearFbo()
+{
+	mFboPingPongId = 1;
+	mFbo.bindFramebuffer();
+	glDrawBuffer( GL_COLOR_ATTACHMENT1_EXT );
+	gl::clear( Color::white() );
+	glDrawBuffer( GL_COLOR_ATTACHMENT2_EXT );
+	gl::clear( Color::white() );
+	mFbo.unbindFramebuffer();
+}
+
 void ProthesisApp::update()
 {
 	mFps = getAverageFps();
@@ -233,25 +258,39 @@ void ProthesisApp::update()
 
 void ProthesisApp::draw()
 {
+	// draw and blend strokes in fbo
 	mFbo.bindFramebuffer();
+	// draw strokes to attachment 0
+	glDrawBuffer( GL_COLOR_ATTACHMENT0_EXT );
+	gl::clear( ColorA::white() );
+
 	gl::setMatricesWindow( mFbo.getSize(), false );
 	gl::setViewport( mFbo.getBounds() );
 
 	mUserManager.draw( mCalibrate );
 
-	gl::enableAlphaBlending();
-	gl::color( ColorA::gray( 1.f, mFadeOutStrength ) );
-	gl::drawSolidRect( mFbo.getBounds() );
+	// blend it with previous frame to attachment pingpongid
+	glDrawBuffer( GL_COLOR_ATTACHMENT0_EXT + mFboPingPongId );
 	gl::color( Color::white() );
-	gl::disableAlphaBlending();
+	int otherId = ( mFboPingPongId == 1 ) ? 2 : 1;
+	mBlendShader.bind();
+	mBlendShader.uniform( "fadeout", mFadeOutStrength );
+	mFbo.getTexture( otherId ).bind( 0 ); // bind previous frame to sampler 0
+	mFbo.getTexture( 0 ).bind( 1 ); // bind strokes to sampler 1
+	gl::drawSolidRect( mFbo.getBounds() );
+	mFbo.getTexture( otherId ).unbind();
+	mFbo.getTexture( 0 ).unbind( 1 );
+	mBlendShader.unbind();
 
 	mFbo.unbindFramebuffer();
 
+	// draw fbo in window
 	gl::setMatricesWindow( getWindowSize() );
 	gl::setViewport( getWindowBounds() );
 
 	gl::clear( Color::black() );
-	gl::draw( mFbo.getTexture(), getWindowBounds() );
+	gl::draw( mFbo.getTexture( mFboPingPongId ), getWindowBounds() );
+	mFboPingPongId = otherId;
 
 	gl::color( Color::black());
 	gl::drawSolidRect( mCalibrate.getCoverLeft());

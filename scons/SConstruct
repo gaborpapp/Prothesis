@@ -6,6 +6,7 @@ env['APP_SOURCES'] = ['ProthesisApp.cpp', 'Calibrate.cpp', 'NIUser.cpp',
 					'Utils.cpp']
 
 env['ASSETS'] = ['strokes/*']
+env['RESOURCES'] = ['shaders/*']
 env['DEBUG'] = 1
 
 env = SConscript('../../../blocks/Cinder-NI/scons/SConscript',
