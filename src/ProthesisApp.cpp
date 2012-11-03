@@ -105,7 +105,7 @@ void ProthesisApp::setup()
 
 	gl::Fbo::Format format;
 	format.enableDepthBuffer( false );
-	//format.setSamples( 4 );
+	format.setSamples( 4 );
 	format.setColorInternalFormat( GL_RGBA32F_ARB );
 	mFbo = gl::Fbo( 2048, 1536, format );
 
@@ -123,8 +123,6 @@ void ProthesisApp::shutdown()
 
 void ProthesisApp::resize(ResizeEvent event)
 {
-	Area area = getWindowBounds();
-	mUserManager.setBounds( area );
 }
 
 void ProthesisApp::keyDown(KeyEvent event)

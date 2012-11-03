@@ -213,13 +213,6 @@ void UserManager::setup( const fs::path &path )
 		it->second.unbind();
 	}
 
-	/*
-	gl::Fbo::Format format;
-	format.setWrap( GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE );
-	//	mFbo = gl::Fbo( 1024, 768, format );
-	//mFbo = gl::Fbo( 640, 480, format );
-	*/
-
 #if USE_KINECT
 	if ( path.empty() )
 		mNI = OpenNI( OpenNI::Device());
@@ -469,7 +462,7 @@ bool UserManager::mouseDown( ci::app::MouseEvent event )
 
 bool UserManager::mouseDrag( ci::app::MouseEvent event )
 {
-	RectMapping mapping( app::getWindowBounds(), mFbo.getBounds() );
+	RectMapping mapping( app::getWindowBounds(), Rectf( 0, 0, 640, 480 ) );
 	mUsers[ 0 ]->update( XN_SKEL_LEFT_HAND, mapping.map( event.getPos() ) );
 
 	return true;

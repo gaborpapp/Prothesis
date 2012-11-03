@@ -95,8 +95,6 @@ void Stroke::draw()
 	mBrush.unbind();
 	gl::disable( GL_TEXTURE_2D );
 
-	gl::disableWireframe();
-
 	if ( !mPoints.empty() )
 		mLastDrawn = mPoints.size() - 1;
 }
