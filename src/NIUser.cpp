@@ -329,7 +329,7 @@ UserManager::UserRef UserManager::findUser( unsigned userId )
 {
 	Users::iterator it = mUsers.find( userId );
 	if( it == mUsers.end())
-		return 0;
+		return UserRef();
 
 	return it->second;
 }

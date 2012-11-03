@@ -147,37 +147,51 @@ void ProthesisApp::resize( ResizeEvent event )
 {
 }
 
-void ProthesisApp::keyDown(KeyEvent event)
+void ProthesisApp::keyDown( KeyEvent event )
 {
-	if( event.getChar() == 'f' )
+	switch ( event.getCode() )
 	{
-		setFullScreen( ! isFullScreen());
-		if( isFullScreen())
-			hideCursor();
-		else
-			showCursor();
-	}
-	else if( event.getChar() == 's' )
-	{
-		showAllParams( ! mParams.isVisible());
-		if( isFullScreen())
-		{
-			if( ! mParams.isVisible())
-				hideCursor();
+		case KeyEvent::KEY_f:
+			if ( !isFullScreen() )
+			{
+				setFullScreen( true );
+				if ( mParams.isVisible() )
+					showCursor();
+				else
+					hideCursor();
+			}
 			else
+			{
+				setFullScreen( false );
 				showCursor();
-		}
-	}
+			}
+			break;
 
-	if( event.getCode() == KeyEvent::KEY_SPACE )
-	{
-		mUserManager.clearStrokes();
-		mFbo.bindFramebuffer();
-		gl::clear( Color::white() );
-		mFbo.unbindFramebuffer();
+		case KeyEvent::KEY_s:
+			showAllParams( !mParams.isVisible() );
+			if ( isFullScreen() )
+			{
+				if ( mParams.isVisible() )
+					showCursor();
+				else
+					hideCursor();
+			}
+			break;
+
+		case KeyEvent::KEY_SPACE:
+			mUserManager.clearStrokes();
+			mFbo.bindFramebuffer();
+			gl::clear( Color::white() );
+			mFbo.unbindFramebuffer();
+			break;
+
+		case KeyEvent::KEY_ESCAPE:
+			quit();
+			break;
+
+		default:
+			break;
 	}
-	else if( event.getCode() == KeyEvent::KEY_ESCAPE )
-		quit();
 }
 
 

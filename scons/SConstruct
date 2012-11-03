@@ -1,8 +1,9 @@
 env = Environment()
 
 env['APP_TARGET'] = 'Prothesis'
-env['APP_SOURCES'] = ['ProthesisApp.cpp', 'NIUser.cpp', 'PParams.cpp',
-					'Stroke.cpp', 'Utils.cpp']
+env['APP_SOURCES'] = ['ProthesisApp.cpp', 'Calibrate.cpp', 'NIUser.cpp',
+					'PParams.cpp', 'Stroke.cpp', 'StrokeManager.cpp',
+					'Utils.cpp']
 
 env['ASSETS'] = ['strokes/*']
 env['DEBUG'] = 1
