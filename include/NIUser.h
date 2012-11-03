@@ -32,12 +32,13 @@ public:
 	void clearPoints();
 	void addStroke( XnSkeletonJoint jointId );
 	void clearStrokes();
-	void draw( const Calibrate &calibrate );
+	void drawStroke( const Calibrate &calibrate );
+	void drawBody  ( const Calibrate &calibrate );
 
 private:
 	void drawJoints( const Calibrate &calibrate );
-	void drawBodyLines( const Calibrate &calibrate );
-	void drawBodyLine( const Calibrate &calibrate, XnSkeletonJoint jointBeg, XnSkeletonJoint jointEnd );
+	void drawLines ( const Calibrate &calibrate );
+	void drawLine  ( const Calibrate &calibrate, XnSkeletonJoint jointBeg, XnSkeletonJoint jointEnd );
 
 private:
 	UserManager     *mUserManager;
@@ -56,7 +57,8 @@ public:
 
 	void setup( const ci::fs::path &path = "" );
 	void update();
-	void draw( const Calibrate &calibrate );
+	void drawStroke( const Calibrate &calibrate );
+	void drawBody  ( const Calibrate &calibrate );
 
 	void setBounds( const Rectf &rect );
 	void clearStrokes();
@@ -102,7 +104,7 @@ private:
 	ci::params::PInterfaceGl mParams;
 	float                    mSkeletonSmoothing;
 	bool                     mJointShow;
-	bool                     mBodyLineShow;
+	bool                     mLineShow;
 	bool                     mVideoShow;
 	float                    mJointSize;
 	ci::ColorA               mJointColor;

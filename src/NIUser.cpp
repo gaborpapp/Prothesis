@@ -47,7 +47,7 @@ void User::addPos( XnSkeletonJoint jointId, Vec2f pos )
 {
 	mJointPositions.insert( pair< XnSkeletonJoint, Vec2f >( jointId, pos ));
 
-	Vec2f strokePos = pos / Vec2f( 640, 480 );
+	Vec2f strokePos = pos / mUserManager->mOutputRect.getSize();
 
 	mStrokeManager.setActive( jointId , mUserManager->getStrokeActive( jointId ));
 	mStrokeManager.setBrush ( jointId , mUserManager->getStrokeBrush ( jointId ));
@@ -64,14 +64,17 @@ void User::clearStrokes()
 	mStrokeManager.clear();
 }
 
-void User::draw( const Calibrate &calibrate )
+void User::drawStroke( const Calibrate &calibrate )
+{
+	mStrokeManager.draw( calibrate );
+}
+
+void User::drawBody( const Calibrate &calibrate )
 {
 	if( mUserManager->mJointShow )
 		drawJoints( calibrate );
-	if( mUserManager->mBodyLineShow )
-		drawBodyLines( calibrate );
-
-	mStrokeManager.draw( calibrate );
+	if( mUserManager->mLineShow )
+		drawLines( calibrate );
 }
 
 void User::drawJoints( const Calibrate &calibrate )
@@ -79,6 +82,8 @@ void User::drawJoints( const Calibrate &calibrate )
 	gl::color( mUserManager->mJointColor );
 	float sc = mUserManager->mOutputRect.getWidth() / 640.0f;
 	float scaledJointSize = mUserManager->mJointSize * sc;
+	RectMapping mapping( mUserManager->mOutputRect, app::getWindowBounds());
+
 	for( JointPositions::const_iterator it = mJointPositions.begin(); it != mJointPositions.end(); ++it )
 	{
 		XnSkeletonJoint jointId = it->first;
@@ -89,34 +94,34 @@ void User::drawJoints( const Calibrate &calibrate )
 			continue;
 
 		Vec2f pos = it->second;
-		gl::drawSolidCircle( calibrate.transform( pos ), scaledJointSize );
+		gl::drawSolidCircle( mapping.map( calibrate.transform( pos )), scaledJointSize );
 	}
 	gl::color( ColorA( 1, 1, 1, 1 ));
 }
 
-void User::drawBodyLines( const Calibrate &calibrate )
+void User::drawLines( const Calibrate &calibrate )
 {
 	gl::color( mUserManager->mJointColor );
 
-	drawBodyLine( calibrate, XN_SKEL_LEFT_HAND     , XN_SKEL_LEFT_SHOULDER  );
-	drawBodyLine( calibrate, XN_SKEL_LEFT_SHOULDER , XN_SKEL_NECK           );
-	drawBodyLine( calibrate, XN_SKEL_RIGHT_SHOULDER, XN_SKEL_NECK           );
-	drawBodyLine( calibrate, XN_SKEL_RIGHT_HAND    , XN_SKEL_RIGHT_SHOULDER );
-	drawBodyLine( calibrate, XN_SKEL_HEAD          , XN_SKEL_NECK           );
-	drawBodyLine( calibrate, XN_SKEL_LEFT_SHOULDER , XN_SKEL_TORSO          );
-	drawBodyLine( calibrate, XN_SKEL_RIGHT_SHOULDER, XN_SKEL_TORSO          );
-	drawBodyLine( calibrate, XN_SKEL_TORSO         , XN_SKEL_LEFT_HIP       );
-	drawBodyLine( calibrate, XN_SKEL_TORSO         , XN_SKEL_RIGHT_HIP      );
-	drawBodyLine( calibrate, XN_SKEL_LEFT_HIP      , XN_SKEL_RIGHT_HIP      );
-	drawBodyLine( calibrate, XN_SKEL_LEFT_HIP      , XN_SKEL_LEFT_KNEE      );
-	drawBodyLine( calibrate, XN_SKEL_RIGHT_HIP     , XN_SKEL_RIGHT_KNEE     );
-	drawBodyLine( calibrate, XN_SKEL_LEFT_KNEE     , XN_SKEL_LEFT_FOOT      );
-	drawBodyLine( calibrate, XN_SKEL_RIGHT_KNEE    , XN_SKEL_RIGHT_FOOT     );
+	drawLine( calibrate, XN_SKEL_LEFT_HAND     , XN_SKEL_LEFT_SHOULDER  );
+	drawLine( calibrate, XN_SKEL_LEFT_SHOULDER , XN_SKEL_NECK           );
+	drawLine( calibrate, XN_SKEL_RIGHT_SHOULDER, XN_SKEL_NECK           );
+	drawLine( calibrate, XN_SKEL_RIGHT_HAND    , XN_SKEL_RIGHT_SHOULDER );
+	drawLine( calibrate, XN_SKEL_HEAD          , XN_SKEL_NECK           );
+	drawLine( calibrate, XN_SKEL_LEFT_SHOULDER , XN_SKEL_TORSO          );
+	drawLine( calibrate, XN_SKEL_RIGHT_SHOULDER, XN_SKEL_TORSO          );
+	drawLine( calibrate, XN_SKEL_TORSO         , XN_SKEL_LEFT_HIP       );
+	drawLine( calibrate, XN_SKEL_TORSO         , XN_SKEL_RIGHT_HIP      );
+	drawLine( calibrate, XN_SKEL_LEFT_HIP      , XN_SKEL_RIGHT_HIP      );
+	drawLine( calibrate, XN_SKEL_LEFT_HIP      , XN_SKEL_LEFT_KNEE      );
+	drawLine( calibrate, XN_SKEL_RIGHT_HIP     , XN_SKEL_RIGHT_KNEE     );
+	drawLine( calibrate, XN_SKEL_LEFT_KNEE     , XN_SKEL_LEFT_FOOT      );
+	drawLine( calibrate, XN_SKEL_RIGHT_KNEE    , XN_SKEL_RIGHT_FOOT     );
 
 	gl::color( ColorA( 1, 1, 1, 1 ));
 }
 
-void User::drawBodyLine( const Calibrate &calibrate, XnSkeletonJoint jointBeg, XnSkeletonJoint jointEnd )
+void User::drawLine( const Calibrate &calibrate, XnSkeletonJoint jointBeg, XnSkeletonJoint jointEnd )
 {
 	JointPositions::iterator it;
 	it = mJointPositions.find( jointBeg );
@@ -131,7 +136,8 @@ void User::drawBodyLine( const Calibrate &calibrate, XnSkeletonJoint jointBeg, X
 
 	Vec2f posEnd = it->second;
 
-	gl::drawLine( calibrate.transform( posBeg ), calibrate.transform( posEnd ));
+	RectMapping mapping( mUserManager->mOutputRect, app::getWindowBounds());
+	gl::drawLine( mapping.map( calibrate.transform( posBeg )), mapping.map( calibrate.transform( posEnd )));
 }
 
 UserManager::UserManager()
@@ -175,16 +181,16 @@ void UserManager::setup( const fs::path &path )
 	mNIUserTracker.addListener( this );
 #endif
 
-	mParams = params::PInterfaceGl( "Kinect", Vec2i( 250, 300 ) );
+	mParams = params::PInterfaceGl( "Kinect", Vec2i( 250, 310 ) );
 	mParams.setPosition( Vec2i( 224, 16 ) );
 	mParams.addPersistentSizeAndPosition();
 	mParams.addText("Tracking");
 	mParams.addPersistentParam( "Skeleton smoothing" , &mSkeletonSmoothing, 0.9, "min=0 max=1 step=.05");
-	mParams.addPersistentParam( "Joint show"         , &mJointShow   , true );
-	mParams.addPersistentParam( "Line show"          , &mBodyLineShow, true );
-	mParams.addPersistentParam( "Video show"         , &mVideoShow   , true );
+	mParams.addPersistentParam( "Joint show"         , &mJointShow, true  );
+	mParams.addPersistentParam( "Line show"          , &mLineShow , true  );
+	mParams.addPersistentParam( "Video show"         , &mVideoShow, false );
 	mParams.addPersistentParam( "Joint size"         , &mJointSize, 5.0, "min=0 max=50 step=.5" );
-	mParams.addPersistentParam( "Joint Color"        , &mJointColor, ColorA::hexA( 0x50ffffff ) );
+	mParams.addPersistentParam( "Joint Color"        , &mJointColor, ColorA::hexA( 0x50c81e1e ) );
 
 	mParams.addSeparator();
 
@@ -193,16 +199,16 @@ void UserManager::setup( const fs::path &path )
 	for( Brushes::iterator it = mBrushes.begin(); it != mBrushes.end(); ++it )
 		strokes.push_back( it->first );
 
-	mParams.addPersistentParam( "Left hand"     , strokes, &mStrokeLeftHand     , 1 );
-	mParams.addPersistentParam( "Left shoulder" , strokes, &mStrokeLeftShoulder , 0 );
-	mParams.addPersistentParam( "Head"          , strokes, &mStrokeHead         , 0 );
-	mParams.addPersistentParam( "Right hand"    , strokes, &mStrokeRightHand    , 0 );
-	mParams.addPersistentParam( "Right shoulder", strokes, &mStrokeRightShoulder, 0 );
-	mParams.addPersistentParam( "Torso"         , strokes, &mStrokeTorso        , 0 );
-	mParams.addPersistentParam( "Left knee"     , strokes, &mStrokeLeftKnee     , 0 );
-	mParams.addPersistentParam( "Right knee"    , strokes, &mStrokeRightKnee    , 0 );
-	mParams.addPersistentParam( "Left foot"     , strokes, &mStrokeLeftFoot     , 0 );
-	mParams.addPersistentParam( "Right foot"    , strokes, &mStrokeRightFoot    , 0 );
+	mParams.addPersistentParam( "Left hand"     , strokes, &mStrokeLeftHand     ,  1 );
+	mParams.addPersistentParam( "Left shoulder" , strokes, &mStrokeLeftShoulder ,  2 );
+	mParams.addPersistentParam( "Head"          , strokes, &mStrokeHead         ,  3 );
+	mParams.addPersistentParam( "Right hand"    , strokes, &mStrokeRightHand    ,  4 );
+	mParams.addPersistentParam( "Right shoulder", strokes, &mStrokeRightShoulder,  5 );
+	mParams.addPersistentParam( "Torso"         , strokes, &mStrokeTorso        ,  6 );
+	mParams.addPersistentParam( "Left knee"     , strokes, &mStrokeLeftKnee     ,  7 );
+	mParams.addPersistentParam( "Right knee"    , strokes, &mStrokeRightKnee    ,  8 );
+	mParams.addPersistentParam( "Left foot"     , strokes, &mStrokeLeftFoot     ,  9 );
+	mParams.addPersistentParam( "Right foot"    , strokes, &mStrokeRightFoot    , 10 );
 
 	setBounds( app::getWindowBounds());
 }
@@ -243,14 +249,29 @@ void UserManager::update()
 #endif
 }
 
-void UserManager::draw( const Calibrate &calibrate )
+void UserManager::drawStroke( const Calibrate &calibrate )
 {
 	gl::enable( GL_SCISSOR_TEST );
 	// FIXME: video is one pixel smaller?
 	glScissor( (GLint)mOutputRect.getX1(), (GLint)mOutputRect.getY1() + 1, (GLsizei)mOutputRect.getWidth(), (GLsizei)mOutputRect.getHeight() - 2 );
 
-//	gl::enableDepthRead();
-//	gl::enableDepthWrite();
+	gl::enableAlphaBlending();
+
+	for( Users::iterator it = mUsers.begin(); it != mUsers.end(); ++it )
+	{
+		it->second->drawStroke( calibrate );
+	}
+
+	gl::disableAlphaBlending();
+	gl::disable( GL_SCISSOR_TEST );
+}
+
+void UserManager::drawBody( const Calibrate &calibrate )
+{
+	gl::enable( GL_SCISSOR_TEST );
+	// FIXME: video is one pixel smaller?
+	glScissor( (GLint)mOutputRect.getX1(), (GLint)mOutputRect.getY1() + 1, (GLsizei)mOutputRect.getWidth(), (GLsizei)mOutputRect.getHeight() - 2 );
+
 	gl::enableAlphaBlending();
 
 #if USE_KINECT
@@ -261,17 +282,15 @@ void UserManager::draw( const Calibrate &calibrate )
 	}
 
 	if( mNITexture && mVideoShow )
-		gl::draw( mNITexture, mOutputRect );
+		gl::draw( mNITexture, app::getWindowBounds());
 #endif
 
 	for( Users::iterator it = mUsers.begin(); it != mUsers.end(); ++it )
 	{
-		it->second->draw( calibrate );
+		it->second->drawBody( calibrate );
 	}
 
 	gl::disableAlphaBlending();
-//	gl::disableDepthRead();
-//	gl::disableDepthWrite();
 
 	gl::disable( GL_SCISSOR_TEST );
 }
@@ -399,7 +418,7 @@ bool UserManager::mouseDown( ci::app::MouseEvent event )
 {
 	mUsers[ 0 ] = UserRef( new User( this ));
 	mUsers[ 0 ]->addStroke( XN_SKEL_LEFT_HAND );
-	RectMapping mapping( app::getWindowBounds(), Rectf( 0, 0, 640, 480 ) );
+	RectMapping mapping( app::getWindowBounds(), mOutputRect );
 	mUsers[ 0 ]->addPos( XN_SKEL_LEFT_HAND, mapping.map( event.getPos() ) );
 
 	return true;
@@ -407,7 +426,7 @@ bool UserManager::mouseDown( ci::app::MouseEvent event )
 
 bool UserManager::mouseDrag( ci::app::MouseEvent event )
 {
-	RectMapping mapping( app::getWindowBounds(), Rectf( 0, 0, 640, 480 ) );
+	RectMapping mapping( app::getWindowBounds(), mOutputRect );
 	mUsers[ 0 ]->addPos( XN_SKEL_LEFT_HAND, mapping.map( event.getPos() ) );
 
 	return true;

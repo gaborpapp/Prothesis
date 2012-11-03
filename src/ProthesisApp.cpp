@@ -81,7 +81,7 @@ void ProthesisApp::setup()
 #if defined( CINDER_MAC )
 		fs::path assetPath( getResourcePath() / "assets" );
 #else
-		fs::path assetPath( getAppPath() / "../../assets" );
+		fs::path assetPath( getAppPath() / "assets" );
 #endif
 		createDirectories( assetPath );
 		paramsXml = assetPath / "params.xml" ;
@@ -151,7 +151,7 @@ void ProthesisApp::setup()
 	mBlendShader.uniform( "brush", 1 );
 	mBlendShader.unbind();
 
-	//setFullScreen( true );
+//	setFullScreen( true );
 	showAllParams( false );
 }
 
@@ -268,7 +268,7 @@ void ProthesisApp::draw()
 	gl::setMatricesWindow( mFbo.getSize(), false );
 	gl::setViewport( mFbo.getBounds() );
 
-	mUserManager.draw( mCalibrate );
+	mUserManager.drawStroke( mCalibrate );
 
 	// blend it with previous frame to attachment pingpongid
 	glDrawBuffer( GL_COLOR_ATTACHMENT0_EXT + mFboPingPongId );
@@ -292,6 +292,8 @@ void ProthesisApp::draw()
 	gl::clear( Color::black() );
 	gl::draw( mFbo.getTexture( mFboPingPongId ), getWindowBounds() );
 	mFboPingPongId = otherId;
+
+	mUserManager.drawBody( mCalibrate );
 
 	gl::color( Color::black());
 	gl::drawSolidRect( mCalibrate.getCoverLeft());

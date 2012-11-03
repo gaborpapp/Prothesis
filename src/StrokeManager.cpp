@@ -9,8 +9,8 @@ const int StrokeManager::sGenerateid = 100;
 params::PInterfaceGl StrokeManager::mParams         = params::PInterfaceGl();
 float                StrokeManager::mK              = 0.06f;
 float                StrokeManager::mDamping        = 0.7f ;
-float                StrokeManager::mStrokeMinWidth = 6.0f ;
-float                StrokeManager::mStrokeMaxWidth = 16.0f;
+float                StrokeManager::mStrokeMinWidth = 100.0f ;
+float                StrokeManager::mStrokeMaxWidth = 160.0f;
 float                StrokeManager::mMaxVelocity    = 40.0f;
 Vec2i                StrokeManager::mSize           = Vec2i();
 
@@ -23,11 +23,11 @@ void StrokeManager::setup( Vec2i size )
 	mParams.setPosition( Vec2i( 16, 176 ) );
 	mParams.addPersistentSizeAndPosition();
 
-	mParams.addPersistentParam( "Stiffness"   , &mK             , 0.06f , "min=    0.01 max=    0.2   step= 0.01" );
-	mParams.addPersistentParam( "Damping"     , &mDamping       , 0.7f  , "min=    0.25 max=    0.999 step= 0.02" );
-	mParams.addPersistentParam( "Stroke min"  , &mStrokeMinWidth, 100.0f, "min=    0    max=  500     step= 0.5"  );
-	mParams.addPersistentParam( "Stroke width", &mStrokeMaxWidth, 160.0f, "min= -500    max=  500     step= 0.5"  );
-	mParams.addPersistentParam( "Velocity max", &mMaxVelocity   , 40.0f , "min=    1    max=  100"                );
+	mParams.addPersistentParam( "Stiffness"       , &mK             , 0.06f , "min=    0.01 max=    0.2   step= 0.01" );
+	mParams.addPersistentParam( "Damping"         , &mDamping       , 0.7f  , "min=    0.25 max=    0.999 step= 0.02" );
+	mParams.addPersistentParam( "Stroke min width", &mStrokeMinWidth, 100.0f, "min=    0    max=  500     step= 0.5"  );
+	mParams.addPersistentParam( "Stroke max width", &mStrokeMaxWidth, 160.0f, "min= -500    max=  500     step= 0.5"  );
+	mParams.addPersistentParam( "Velocity max"    , &mMaxVelocity   , 40.0f , "min=    1    max=  100"                );
 }
 
 void StrokeManager::update()
@@ -82,7 +82,11 @@ void StrokeManager::setBrush( int id, gl::Texture brush )
 
 void StrokeManager::clear()
 {
-	mStrokes.clear();
+	for( Strokes::const_iterator it = mStrokes.begin(); it != mStrokes.end(); ++it )
+	{
+		StrokeRef stroke = it->second;
+		stroke->clear();
+	}
 }
 
 int StrokeManager::createStroke( int id /* = -1 */ )

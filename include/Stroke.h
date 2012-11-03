@@ -52,6 +52,7 @@ class Stroke
 		};
 
 		bool mActive;
+		bool mEmpty; // if it has already a target position or not
 
 		std::vector<StrokePoint> mPoints;
 

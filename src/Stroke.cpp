@@ -12,8 +12,10 @@ Stroke::Stroke()
 , mK( 0.06f )
 , mDamping( 0.7f )
 , mMass( 1.0f )
-, mStrokeMinWidth( 1.0f )
-, mStrokeMaxWidth( 15.0f )
+, mStrokeMinWidth( 100.0f )
+, mStrokeMaxWidth( 160.0f )
+, mMaxVelocity( 40.0f )
+, mEmpty( true )
 {
 }
 
@@ -25,11 +27,13 @@ void Stroke::resize( ResizeEvent event )
 void Stroke::addPos( Vec2f pos )
 {
 	mTarget = pos;
+	mEmpty  = false;
 }
 
 void Stroke::update()
 {
-	if( ! mActive )
+	if( ! mActive
+	 ||   mEmpty )
 		return;
 
 	if ( mPoints.empty() )
