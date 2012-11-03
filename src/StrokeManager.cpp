@@ -41,6 +41,7 @@ void StrokeManager::update()
 		stroke->setStrokeMaxWidth( mStrokeMaxWidth );
 		stroke->setMaxVelocity   ( mMaxVelocity    );
 		stroke->resize( ResizeEvent( mSize ));
+		stroke->update();
 	}
 }
 
@@ -59,7 +60,7 @@ void StrokeManager::addPos( int id, Vec2f pos )
 	StrokeRef stroke = findStroke( id );
 
 	if( stroke )
-		stroke->update( pos );
+		stroke->addPos( pos );
 }
 
 void StrokeManager::setActive( int id, bool active )

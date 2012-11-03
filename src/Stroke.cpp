@@ -22,20 +22,25 @@ void Stroke::resize( ResizeEvent event )
 	mWindowSize = event.getSize();
 }
 
-void Stroke::update( Vec2f pos )
+void Stroke::addPos( Vec2f pos )
+{
+	mTarget = pos;
+}
+
+void Stroke::update()
 {
 	if( ! mActive )
 		return;
 
 	if ( mPoints.empty() )
 	{
-		mPos = pos;
+		mPos = mTarget;
 		mVel = Vec2f::zero();
 		mU = 0.f;
 		mLastDrawn = 0;
 	}
 
-	Vec2f d = mPos - pos; // displacement from the cursor
+	Vec2f d = mPos - mTarget; // displacement from the target
 	Vec2f f = -mK * d; // Hooke's law F = - k * d
 	Vec2f a = f / mMass; // acceleration, F = ma
 
@@ -45,8 +50,7 @@ void Stroke::update( Vec2f pos )
 	mU += mVel.length();
 
 	Vec2f ang( -mVel.y, mVel.x );
-	if( ang != Vec2f( 0.0f, 0.0f ))
-		ang.normalize();
+	ang.safeNormalize();
 
 	Vec2f scaledVel = mVel * Vec2f( mWindowSize );
 	float s = math<float>::clamp( scaledVel.length(), 0, mMaxVelocity );

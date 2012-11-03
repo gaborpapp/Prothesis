@@ -398,6 +398,8 @@ bool UserManager::mouseDown( ci::app::MouseEvent event )
 {
 	mUsers[ 0 ] = UserRef( new User( this ));
 	mUsers[ 0 ]->addStroke( XN_SKEL_LEFT_HAND );
+	RectMapping mapping( app::getWindowBounds(), Rectf( 0, 0, 640, 480 ) );
+	mUsers[ 0 ]->addPos( XN_SKEL_LEFT_HAND, mapping.map( event.getPos() ) );
 
 	return true;
 }

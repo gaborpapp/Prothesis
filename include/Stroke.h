@@ -15,7 +15,8 @@ class Stroke
 
 		void resize( ci::app::ResizeEvent event );
 
-		void update( ci::Vec2f point );
+		void addPos( ci::Vec2f point );
+		void update();
 		void draw( const Calibrate &calibrate );
 
 		void setActive( bool active );
@@ -55,6 +56,7 @@ class Stroke
 		std::vector<StrokePoint> mPoints;
 
 		ci::Vec2f mPos;     // spring position
+		ci::Vec2f mTarget;  // target position
 		ci::Vec2f mVel;     // velocity
 		float     mK;       // spring stiffness
 		float     mDamping; // friction
