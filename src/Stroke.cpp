@@ -41,6 +41,11 @@ void Stroke::update()
 	}
 
 	Vec2f d = mPos - mTarget; // displacement from the target
+
+	// no new point if the target is close
+	if ( ( d.lengthSquared() < .001f ) && ( !mPoints.empty() ) )
+		return;
+
 	Vec2f f = -mK * d; // Hooke's law F = - k * d
 	Vec2f a = f / mMass; // acceleration, F = ma
 
