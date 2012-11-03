@@ -39,6 +39,9 @@ class PInterfaceGl : public InterfaceGl {
 	PInterfaceGl( const std::string &title, const Vec2i &size, const ColorA colorA = ColorA( 0.3f, 0.3f, 0.3f, 0.4f ) )
 		: InterfaceGl( title, size, colorA ), m_id( name2id( title ) ) {}
 
+	//! Moves bar to position \a pos.
+	void setPosition(const ci::Vec2i &pos);
+
 	/** Add a persistent parameter for the window size, position and iconified status
 	 * Persistent parameter will be initialized with saved value if found, or with
 	 * supplied default otherwise

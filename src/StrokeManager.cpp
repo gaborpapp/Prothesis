@@ -20,6 +20,7 @@ void StrokeManager::setup( Vec2i size )
 	mSize   = size;
 
 	mParams = params::PInterfaceGl( "Stroke", Vec2i( 200, 150 ) );
+	mParams.setPosition( Vec2i( 16, 176 ) );
 	mParams.addPersistentSizeAndPosition();
 
 	mParams.addPersistentParam( "Stiffness"   , &mK             , 0.06f , "min=    0.01 max=    0.2   step= 0.01" );

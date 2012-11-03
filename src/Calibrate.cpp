@@ -31,6 +31,7 @@ Calibrate::Calibrate()
 void Calibrate::setup()
 {
 	mParams = params::PInterfaceGl( "Calibrate", Vec2i( 200, 250 ) );
+	mParams.setPosition( Vec2i( 480, 16 ) );
 	mParams.addPersistentSizeAndPosition();
 	mParams.addText( "Translate", "help='Left mouse button'" );
 	mParams.addPersistentParam( "Translate X" , &mTranslateX    , 0.0f, getMinMaxStepString<float>( MIN_TRANSLATE, MAX_TRANSLATE, STEP_TRANSLATE ));

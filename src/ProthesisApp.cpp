@@ -90,6 +90,7 @@ void ProthesisApp::setup()
 	params::PInterfaceGl::load( paramsXml );
 
 	mParams = params::PInterfaceGl( "Parameters", Vec2i( 200, 150 ));
+	mParams.setPosition( Vec2i( 16, 16 ) );
 	mParams.addPersistentSizeAndPosition();
 	mParams.addText( "Debug" );
 	mParams.addParam( "Fps", &mFps, "", true );

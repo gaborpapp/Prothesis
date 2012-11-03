@@ -176,6 +176,7 @@ void UserManager::setup( const fs::path &path )
 #endif
 
 	mParams = params::PInterfaceGl( "Kinect", Vec2i( 250, 300 ) );
+	mParams.setPosition( Vec2i( 224, 16 ) );
 	mParams.addPersistentSizeAndPosition();
 	mParams.addText("Tracking");
 	mParams.addPersistentParam( "Skeleton smoothing" , &mSkeletonSmoothing, 0.9, "min=0 max=1 step=.05");

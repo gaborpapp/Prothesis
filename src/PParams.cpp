@@ -86,6 +86,11 @@ void PInterfaceGl::save() {
 	root().write( writeFile(filename()) );
 }
 
+void PInterfaceGl::setPosition(const ci::Vec2i &pos)
+{
+	TwSetParam( mBar.get(), NULL, "position", TW_PARAM_INT32, 2, pos.ptr() );
+}
+
 void PInterfaceGl::addPersistentSizeAndPosition()
 {
 	int size[2];
