@@ -198,17 +198,19 @@ void UserManager::setup( const fs::path &path )
 	strokes.push_back( "OFF" );
 	for( Brushes::iterator it = mBrushes.begin(); it != mBrushes.end(); ++it )
 		strokes.push_back( it->first );
+	int strokePos  = 1;
+	int strokeSize = mBrushes.size();
 
-	mParams.addPersistentParam( "Left hand"     , strokes, &mStrokeLeftHand     ,  1 );
-	mParams.addPersistentParam( "Left shoulder" , strokes, &mStrokeLeftShoulder ,  2 );
-	mParams.addPersistentParam( "Head"          , strokes, &mStrokeHead         ,  3 );
-	mParams.addPersistentParam( "Right hand"    , strokes, &mStrokeRightHand    ,  4 );
-	mParams.addPersistentParam( "Right shoulder", strokes, &mStrokeRightShoulder,  5 );
-	mParams.addPersistentParam( "Torso"         , strokes, &mStrokeTorso        ,  6 );
-	mParams.addPersistentParam( "Left knee"     , strokes, &mStrokeLeftKnee     ,  7 );
-	mParams.addPersistentParam( "Right knee"    , strokes, &mStrokeRightKnee    ,  8 );
-	mParams.addPersistentParam( "Left foot"     , strokes, &mStrokeLeftFoot     ,  9 );
-	mParams.addPersistentParam( "Right foot"    , strokes, &mStrokeRightFoot    , 10 );
+	mParams.addPersistentParam( "Left hand"     , strokes, &mStrokeLeftHand     , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Left shoulder" , strokes, &mStrokeLeftShoulder , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Head"          , strokes, &mStrokeHead         , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Right hand"    , strokes, &mStrokeRightHand    , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Right shoulder", strokes, &mStrokeRightShoulder, strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Torso"         , strokes, &mStrokeTorso        , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Left knee"     , strokes, &mStrokeLeftKnee     , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Right knee"    , strokes, &mStrokeRightKnee    , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Left foot"     , strokes, &mStrokeLeftFoot     , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Right foot"    , strokes, &mStrokeRightFoot    , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
 
 	setBounds( app::getWindowBounds());
 }
