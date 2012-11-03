@@ -8,10 +8,12 @@
 
 #include "CiNI.h"
 #include "PParams.h"
-#include "Stroke.h"
+#include "StrokeManager.h"
+#include "Calibrate.h"
 
-#define USE_KINECT 0
+#define USE_KINECT        0
 #define USE_KINECT_RECORD 0
+
 
 namespace cinder {
 
@@ -19,38 +21,34 @@ class UserManager;
 
 class User
 {
-typedef std::map< XnSkeletonJoint, ci::Vec2f >                 JointPositions;
-typedef std::map< XnSkeletonJoint, std::shared_ptr< Stroke > > JointStrokes;
+typedef std::map< XnSkeletonJoint, ci::Vec2f > JointPositions;
 
 public:
 	User( UserManager *userManager );
 
-	void update( XnSkeletonJoint jointId, ci::Vec2f pos );
+	void update();
+	void addPos( XnSkeletonJoint jointId, ci::Vec2f pos );
 
 	void clearPoints();
 	void addStroke( XnSkeletonJoint jointId );
 	void clearStrokes();
-	void draw();
+	void draw( const Calibrate &calibrate );
 
 private:
-	Stroke *createStroke ( XnSkeletonJoint jointId );
-	void    destroyStroke( XnSkeletonJoint jointId );
-	Stroke *findStroke   ( XnSkeletonJoint jointId );
-
-	void drawJoints();
-	void drawBodyLines();
-	void drawBodyLine( XnSkeletonJoint jointBeg, XnSkeletonJoint jointEnd );
-	void drawStrokes();
+	void drawJoints( const Calibrate &calibrate );
+	void drawBodyLines( const Calibrate &calibrate );
+	void drawBodyLine( const Calibrate &calibrate, XnSkeletonJoint jointBeg, XnSkeletonJoint jointEnd );
 
 private:
 	UserManager     *mUserManager;
 	JointPositions   mJointPositions;
-	JointStrokes     mJointStrokes;
+	StrokeManager    mStrokeManager;
 };
 
 class UserManager : mndl::ni::UserTracker::Listener
 {
-typedef std::map< unsigned, std::shared_ptr< User > >            Users;
+typedef std::shared_ptr< User >                                  UserRef;
+typedef std::map< unsigned, UserRef >                            Users;
 typedef std::vector< std::pair< std::string, ci::gl::Texture > > Brushes;
 typedef std::vector< XnSkeletonJoint >                           Joints;
 public:
@@ -58,10 +56,9 @@ public:
 
 	void setup( const ci::fs::path &path = "" );
 	void update();
-	void draw();
+	void draw( const Calibrate &calibrate );
 
 	void setBounds( const Rectf &rect );
-	void showParams( bool show );
 	void clearStrokes();
 
 	void newUser       ( mndl::ni::UserTracker::UserEvent event );
@@ -80,9 +77,9 @@ public:
 	}
 
 private:
-	void  createUser ( unsigned userId );
-	void  destroyUser( unsigned userId );
-	User *findUser   ( unsigned userId );
+	void    createUser ( unsigned userId );
+	void    destroyUser( unsigned userId );
+	UserRef findUser   ( unsigned userId );
 
 	bool            getStrokeActive( XnSkeletonJoint jointId );
 	ci::gl::Texture getStrokeBrush ( XnSkeletonJoint jointId );
@@ -109,12 +106,6 @@ private:
 	bool                     mVideoShow;
 	float                    mJointSize;
 	ci::ColorA               mJointColor;
-
-	float                    mK;
-	float                    mDamping;
-	float                    mStrokeMinWidth;
-	float                    mStrokeMaxWidth;
-	float                    mMaxVelocity;
 
 	int                      mStrokeLeftHand;
 	int                      mStrokeLeftShoulder;

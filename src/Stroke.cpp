@@ -27,7 +27,7 @@ void Stroke::update( Vec2f pos )
 	if( ! mActive )
 		return;
 
-	if( mPoints.empty() )
+	if ( mPoints.empty() )
 	{
 		mPos = pos;
 		mVel = Vec2f::zero();
@@ -36,16 +36,17 @@ void Stroke::update( Vec2f pos )
 	}
 
 	Vec2f d = mPos - pos; // displacement from the cursor
-	Vec2f f = -mK * d;    // Hooke's law F = - k * d
-	Vec2f a = f / mMass;  // acceleration, F = ma
+	Vec2f f = -mK * d; // Hooke's law F = - k * d
+	Vec2f a = f / mMass; // acceleration, F = ma
 
-	mVel  = mVel + a;
+	mVel = mVel + a;
 	mVel *= mDamping;
 	mPos += mVel;
 	mU += mVel.length();
 
 	Vec2f ang( -mVel.y, mVel.x );
-	ang.normalize();
+	if( ang != Vec2f( 0.0f, 0.0f ))
+		ang.normalize();
 
 	Vec2f scaledVel = mVel * Vec2f( mWindowSize );
 	float s = math<float>::clamp( scaledVel.length(), 0, mMaxVelocity );
@@ -53,7 +54,7 @@ void Stroke::update( Vec2f pos )
 	mPoints.push_back( StrokePoint( mPos * Vec2f( mWindowSize ), ang, mU ) );
 }
 
-void Stroke::draw()
+void Stroke::draw( const Calibrate &calibrate )
 {
 	if( ! mActive
 	 || ! mBrush )
@@ -83,9 +84,9 @@ void Stroke::draw()
 			{
 				const StrokePoint *s = &(*i);
 				glTexCoord2f( s->u, v0 );
-				gl::vertex( s->p + c0 * s->w );
+				gl::vertex( calibrate.transform( s->p + c0 * s->w ));
 				glTexCoord2f( s->u, v1 );
-				gl::vertex( s->p + c1 * s->w );
+				gl::vertex( calibrate.transform( s->p + c1 * s->w ));
 			}
 			glEnd();
 		}

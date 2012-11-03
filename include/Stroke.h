@@ -6,6 +6,7 @@
 #include "cinder/app/App.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Texture.h"
+#include "Calibrate.h"
 
 class Stroke
 {
@@ -15,7 +16,7 @@ class Stroke
 		void resize( ci::app::ResizeEvent event );
 
 		void update( ci::Vec2f point );
-		void draw();
+		void draw( const Calibrate &calibrate );
 
 		void setActive( bool active );
 

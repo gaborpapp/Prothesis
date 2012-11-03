@@ -38,94 +38,43 @@ void User::clearPoints()
 	mJointPositions.clear();
 }
 
-void User::update( XnSkeletonJoint jointId, Vec2f pos )
+void User::update()
+{
+	mStrokeManager.update();
+}
+
+void User::addPos( XnSkeletonJoint jointId, Vec2f pos )
 {
 	mJointPositions.insert( pair< XnSkeletonJoint, Vec2f >( jointId, pos ));
 
 	Vec2f strokePos = pos / Vec2f( 640, 480 );
-	Stroke *stroke = findStroke( jointId );
-	if( stroke )
-	{
-		stroke->setStiffness( mUserManager->mK );
-		stroke->setDamping( mUserManager->mDamping );
-		stroke->setStrokeMinWidth( mUserManager->mStrokeMinWidth );
-		stroke->setStrokeMaxWidth( mUserManager->mStrokeMaxWidth );
-		stroke->setMaxVelocity( mUserManager->mMaxVelocity );
 
-		stroke->setActive( mUserManager->getStrokeActive( jointId ));
-		stroke->setBrush ( mUserManager->getStrokeBrush ( jointId ));
-
-		stroke->update( strokePos );
-	}
+	mStrokeManager.setActive( jointId , mUserManager->getStrokeActive( jointId ));
+	mStrokeManager.setBrush ( jointId , mUserManager->getStrokeBrush ( jointId ));
+	mStrokeManager.addPos( jointId , strokePos );
 }
 
 void User::addStroke( XnSkeletonJoint jointId )
 {
-	Stroke *stroke = createStroke( jointId );
-
-	stroke->resize( ResizeEvent( mUserManager->mFbo.getSize()));
-	stroke->setStiffness( mUserManager->mK );
-	stroke->setDamping( mUserManager->mDamping );
-	stroke->setStrokeMinWidth( mUserManager->mStrokeMinWidth );
-	stroke->setStrokeMaxWidth( mUserManager->mStrokeMaxWidth );
-	stroke->setMaxVelocity( mUserManager->mMaxVelocity );
+	mStrokeManager.createStroke( jointId );
 }
 
 void User::clearStrokes()
 {
-	for( JointStrokes::iterator it = mJointStrokes.begin(); it != mJointStrokes.end(); ++it )
-	{
-		it->second->clear();
-	}
+	mStrokeManager.clear();
 }
 
-Stroke *User::createStroke( XnSkeletonJoint jointId )
-{
-	Stroke *stroke = findStroke( jointId );
-
-	if( ! stroke )
-	{
-		stroke = new Stroke();
-		mJointStrokes[ jointId ] = shared_ptr< Stroke >( stroke );
-	}
-
-	return stroke;
-}
-
-void User::destroyStroke( XnSkeletonJoint jointId )
-{
-	if( ! findStroke( jointId ))
-		return;
-
-	mJointStrokes.erase( jointId );
-}
-
-Stroke *User::findStroke( XnSkeletonJoint jointId )
-{
-	JointStrokes::iterator it = mJointStrokes.find( jointId );
-	if( it == mJointStrokes.end())
-		return 0;
-
-	return &(*it->second);
-}
-
-void User::draw()
+void User::draw( const Calibrate &calibrate )
 {
 	if( mUserManager->mJointShow )
-		drawJoints();
+		drawJoints( calibrate );
 	if( mUserManager->mBodyLineShow )
-		drawBodyLines();
+		drawBodyLines( calibrate );
 
-	drawStrokes();
+	mStrokeManager.draw( calibrate );
 }
 
-void User::drawStrokes()
-{
-	for( JointStrokes::iterator it = mJointStrokes.begin(); it != mJointStrokes.end(); ++it )
-		it->second->draw();
-}
-
-void User::drawJoints()
+void User::drawJoints( const Calibrate &calibrate )
 {
 	gl::color( mUserManager->mJointColor );
 	float sc = mUserManager->mOutputRect.getWidth() / 640.0f;
@@ -140,34 +89,34 @@ void User::drawJoints()
 			continue;
 
 		Vec2f pos = it->second;
-		gl::drawSolidCircle( pos, scaledJointSize );
+		gl::drawSolidCircle( calibrate.transform( pos ), scaledJointSize );
 	}
 	gl::color( ColorA( 1, 1, 1, 1 ));
 }
 
-void User::drawBodyLines()
+void User::drawBodyLines( const Calibrate &calibrate )
 {
 	gl::color( mUserManager->mJointColor );
 
-	drawBodyLine( XN_SKEL_LEFT_HAND     , XN_SKEL_LEFT_SHOULDER  );
-	drawBodyLine( XN_SKEL_LEFT_SHOULDER , XN_SKEL_NECK           );
-	drawBodyLine( XN_SKEL_RIGHT_SHOULDER, XN_SKEL_NECK           );
-	drawBodyLine( XN_SKEL_RIGHT_HAND    , XN_SKEL_RIGHT_SHOULDER );
-	drawBodyLine( XN_SKEL_HEAD          , XN_SKEL_NECK           );
-	drawBodyLine( XN_SKEL_LEFT_SHOULDER , XN_SKEL_TORSO          );
-	drawBodyLine( XN_SKEL_RIGHT_SHOULDER, XN_SKEL_TORSO          );
-	drawBodyLine( XN_SKEL_TORSO         , XN_SKEL_LEFT_HIP       );
-	drawBodyLine( XN_SKEL_TORSO         , XN_SKEL_RIGHT_HIP      );
-	drawBodyLine( XN_SKEL_LEFT_HIP      , XN_SKEL_RIGHT_HIP      );
-	drawBodyLine( XN_SKEL_LEFT_HIP      , XN_SKEL_LEFT_KNEE      );
-	drawBodyLine( XN_SKEL_RIGHT_HIP     , XN_SKEL_RIGHT_KNEE     );
-	drawBodyLine( XN_SKEL_LEFT_KNEE     , XN_SKEL_LEFT_FOOT      );
-	drawBodyLine( XN_SKEL_RIGHT_KNEE    , XN_SKEL_RIGHT_FOOT     );
+	drawBodyLine( calibrate, XN_SKEL_LEFT_HAND     , XN_SKEL_LEFT_SHOULDER  );
+	drawBodyLine( calibrate, XN_SKEL_LEFT_SHOULDER , XN_SKEL_NECK           );
+	drawBodyLine( calibrate, XN_SKEL_RIGHT_SHOULDER, XN_SKEL_NECK           );
+	drawBodyLine( calibrate, XN_SKEL_RIGHT_HAND    , XN_SKEL_RIGHT_SHOULDER );
+	drawBodyLine( calibrate, XN_SKEL_HEAD          , XN_SKEL_NECK           );
+	drawBodyLine( calibrate, XN_SKEL_LEFT_SHOULDER , XN_SKEL_TORSO          );
+	drawBodyLine( calibrate, XN_SKEL_RIGHT_SHOULDER, XN_SKEL_TORSO          );
+	drawBodyLine( calibrate, XN_SKEL_TORSO         , XN_SKEL_LEFT_HIP       );
+	drawBodyLine( calibrate, XN_SKEL_TORSO         , XN_SKEL_RIGHT_HIP      );
+	drawBodyLine( calibrate, XN_SKEL_LEFT_HIP      , XN_SKEL_RIGHT_HIP      );
+	drawBodyLine( calibrate, XN_SKEL_LEFT_HIP      , XN_SKEL_LEFT_KNEE      );
+	drawBodyLine( calibrate, XN_SKEL_RIGHT_HIP     , XN_SKEL_RIGHT_KNEE     );
+	drawBodyLine( calibrate, XN_SKEL_LEFT_KNEE     , XN_SKEL_LEFT_FOOT      );
+	drawBodyLine( calibrate, XN_SKEL_RIGHT_KNEE    , XN_SKEL_RIGHT_FOOT     );
 
 	gl::color( ColorA( 1, 1, 1, 1 ));
 }
 
-void User::drawBodyLine( XnSkeletonJoint jointBeg, XnSkeletonJoint jointEnd )
+void User::drawBodyLine( const Calibrate &calibrate, XnSkeletonJoint jointBeg, XnSkeletonJoint jointEnd )
 {
 	JointPositions::iterator it;
 	it = mJointPositions.find( jointBeg );
@@ -182,7 +131,7 @@ void User::drawBodyLine( XnSkeletonJoint jointBeg, XnSkeletonJoint jointEnd )
 
 	Vec2f posEnd = it->second;
 
-	gl::drawLine( posBeg, posEnd );
+	gl::drawLine( calibrate.transform( posBeg ), calibrate.transform( posEnd ));
 }
 
 UserManager::UserManager()
@@ -215,7 +164,7 @@ void UserManager::setup( const fs::path &path )
 
 #if USE_KINECT
 	if ( path.empty() )
-		mNI = OpenNI( OpenNI::Device());
+		mNI = OpenNI( OpenNI::Device() );
 	else
 		mNI = OpenNI( path );
 
@@ -226,7 +175,7 @@ void UserManager::setup( const fs::path &path )
 	mNIUserTracker.addListener( this );
 #endif
 
-	mParams = params::PInterfaceGl( "Kinect", Vec2i( 300, 400 ) );
+	mParams = params::PInterfaceGl( "Kinect", Vec2i( 250, 300 ) );
 	mParams.addPersistentSizeAndPosition();
 	mParams.addText("Tracking");
 	mParams.addPersistentParam( "Skeleton smoothing" , &mSkeletonSmoothing, 0.9, "min=0 max=1 step=.05");
@@ -236,12 +185,6 @@ void UserManager::setup( const fs::path &path )
 	mParams.addPersistentParam( "Joint size"         , &mJointSize, 5.0, "min=0 max=50 step=.5" );
 	mParams.addPersistentParam( "Joint Color"        , &mJointColor, ColorA::hexA( 0x50ffffff ) );
 
-	mParams.addText("Stroke");
-	mParams.addPersistentParam( "Stiffness"          , &mK             , 0.06f, "min=   0.01 max=   0.2   step= 0.01" );
-	mParams.addPersistentParam( "Damping"            , &mDamping       , 0.7f , "min=   0.25 max=   0.999 step= 0.02" );
-	mParams.addPersistentParam( "Stroke min"         , &mStrokeMinWidth, 100.0f , "min=   0    max= 500     step= 0.5"  );
-	mParams.addPersistentParam( "Stroke width"       , &mStrokeMaxWidth, 160.0f, "min= -500    max= 500     step= 0.5"  );
-	mParams.addPersistentParam( "Velocity max"       , &mMaxVelocity   , 40.0f, "min=   1    max= 100"                );
 	mParams.addSeparator();
 
 	vector< string > strokes;
@@ -265,6 +208,13 @@ void UserManager::setup( const fs::path &path )
 
 void UserManager::update()
 {
+	for( Users::const_iterator it = mUsers.begin(); it != mUsers.end(); ++it )
+	{
+		UserRef user = it->second;
+
+		user->update();
+	}
+
 #if USE_KINECT
 	mNIUserTracker.setSmoothing( mSkeletonSmoothing );
 
@@ -272,7 +222,7 @@ void UserManager::update()
 	for( vector< unsigned >::const_iterator it = users.begin(); it != users.end(); ++it )
 	{
 		unsigned userId = *it;
-		User *user = findUser( userId );
+		UserRef user = findUser( userId );
 		if( ! user )
 			continue;
 
@@ -285,14 +235,14 @@ void UserManager::update()
 
 			if( conf > .9 )
 			{
-				user->update( jointId, mOutputMapping.map( jointPos ));
+				user->addPos( jointId, mOutputMapping.map( jointPos ));
 			}
 		}
 	}
 #endif
 }
 
-void UserManager::draw()
+void UserManager::draw( const Calibrate &calibrate )
 {
 	gl::enable( GL_SCISSOR_TEST );
 	// FIXME: video is one pixel smaller?
@@ -315,7 +265,7 @@ void UserManager::draw()
 
 	for( Users::iterator it = mUsers.begin(); it != mUsers.end(); ++it )
 	{
-		it->second->draw();
+		it->second->draw( calibrate );
 	}
 
 	gl::disableAlphaBlending();
@@ -339,14 +289,6 @@ void UserManager::setBounds( const Rectf &rect )
 	mOutputMapping = RectMapping( kRect, dRect, true );
 }
 
-void UserManager::showParams( bool show )
-{
-	if( show )
-		TwDefine( "Kinect visible=true" );
-	else
-		TwDefine( "Kinect visible=false" );
-}
-
 void UserManager::clearStrokes()
 {
 	for( Users::iterator it = mUsers.begin(); it != mUsers.end(); ++it )
@@ -360,7 +302,7 @@ void UserManager::createUser( unsigned userId )
 	if( findUser( userId ))
 		return;
 
-	mUsers[ userId ] = shared_ptr< User >( new User( this ));
+	mUsers[ userId ] = UserRef( new User( this ));
 
 	for( Joints::const_iterator it = mJoints.begin(); it != mJoints.end(); ++it )
 	{
@@ -383,13 +325,13 @@ void UserManager::destroyUser( unsigned userId )
 	mUsers.erase( userId );
 }
 
-User *UserManager::findUser( unsigned userId )
+UserManager::UserRef UserManager::findUser( unsigned userId )
 {
 	Users::iterator it = mUsers.find( userId );
 	if( it == mUsers.end())
 		return 0;
 
-	return &(*it->second);
+	return it->second;
 }
 
 bool UserManager::getStrokeActive( XnSkeletonJoint jointId )
@@ -454,7 +396,7 @@ void UserManager::lostUser( UserTracker::UserEvent event )
 
 bool UserManager::mouseDown( ci::app::MouseEvent event )
 {
-	mUsers[ 0 ] = shared_ptr< User >( new User( this ));
+	mUsers[ 0 ] = UserRef( new User( this ));
 	mUsers[ 0 ]->addStroke( XN_SKEL_LEFT_HAND );
 
 	return true;
@@ -463,7 +405,7 @@ bool UserManager::mouseDown( ci::app::MouseEvent event )
 bool UserManager::mouseDrag( ci::app::MouseEvent event )
 {
 	RectMapping mapping( app::getWindowBounds(), Rectf( 0, 0, 640, 480 ) );
-	mUsers[ 0 ]->update( XN_SKEL_LEFT_HAND, mapping.map( event.getPos() ) );
+	mUsers[ 0 ]->addPos( XN_SKEL_LEFT_HAND, mapping.map( event.getPos() ) );
 
 	return true;
 }
@@ -476,4 +418,3 @@ bool UserManager::mouseUp( ci::app::MouseEvent event )
 }
 
 } // namespace cinder
-

@@ -42,6 +42,12 @@
     <ClCompile Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNIUserTracker.cpp">
       <Filter>blocks\Cinder-NI</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\StrokeManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Calibrate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\PParams.h">
@@ -64,6 +70,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNIUserTracker.h">
       <Filter>blocks\Cinder-NI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\StrokeManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Calibrate.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

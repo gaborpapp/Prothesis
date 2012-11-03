@@ -1,9 +1,13 @@
 #include "cinder/app/AppBasic.h"
 #include "cinder/Cinder.h"
+#include "cinder/gl/gl.h"
+#include "cinder/Rect.h"
 #include "AntTweakBar.h"
 #include "NIUser.h"
+#include "Calibrate.h"
 #include "PParams.h"
 #include "Utils.h"
+#include "StrokeManager.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -29,15 +33,26 @@ class ProthesisApp : public AppBasic
 		void update();
 		void draw();
 
+		void showAllParams( bool show );
+
 	private:
-		UserManager mUserManager;
+		UserManager   mUserManager;
+		Calibrate     mCalibrate;
 
 		gl::Fbo mFbo;
+
+		enum MouseAction
+		{
+			MA_NONE      = 0,
+			MA_STROKE    = 1,
+			MA_CALIBRATE = 2,
+		};
 
 		// params
 		params::PInterfaceGl mParams;
 		float                mFps;
 		float                mFadeOutStrength;
+		MouseAction          mMouseAction;
 };
 
 void ProthesisApp::prepareSettings(Settings *settings)
@@ -68,14 +83,19 @@ void ProthesisApp::setup()
 
 	params::PInterfaceGl::load( paramsXml );
 
-	TwDefine( "TW_HELP visible=false" );
-	mParams = params::PInterfaceGl("Parameters", Vec2i(300, 200));
+	mParams = params::PInterfaceGl( "Parameters", Vec2i( 200, 150 ));
 	mParams.addPersistentSizeAndPosition();
 	mParams.addText( "Debug" );
 	mParams.addParam( "Fps", &mFps, "", true );
 	mParams.addSeparator();
-	mParams.addPersistentParam( "Fade strength", &mFadeOutStrength, 0.001f,
-			"min=0. max=1. step=0.001" );
+	mParams.addPersistentParam( "Fade strength", &mFadeOutStrength, 0.001f, "min=0. max=1. step=0.001" );
+
+	vector< string > mouseActions;
+	mouseActions.push_back( "None"      );
+	mouseActions.push_back( "Stroke"    );
+	mouseActions.push_back( "Calibrate" );
+	mMouseAction = MA_NONE;
+	mParams.addParam( "Mouse action", mouseActions, (int*)&mMouseAction );
 
 	try
 	{
@@ -89,19 +109,16 @@ void ProthesisApp::setup()
 	}
 	catch( ... ) // TODO: catching std::exception or ci::Exception does not work
 	{
-		console() << "Could not open Kinect "  << endl;
+		console() << "Could not open Kinect" << endl;
 		quit();
 	}
 
-	registerMouseDown( &mUserManager, &UserManager::mouseDown );
-	registerMouseUp( &mUserManager, &UserManager::mouseUp );
-	registerMouseDrag( &mUserManager, &UserManager::mouseDrag );
+// 	registerMouseDown( &mUserManager, &UserManager::mouseDown );
+// 	registerMouseUp( &mUserManager, &UserManager::mouseUp );
+// 	registerMouseDrag( &mUserManager, &UserManager::mouseDrag );
 
 	//setFullScreen( true );
 	//hideCursor();
-
-	mParams.hide();
-	mUserManager.showParams( false );
 
 	gl::Fbo::Format format;
 	format.enableDepthBuffer( false );
@@ -111,9 +128,14 @@ void ProthesisApp::setup()
 
 	mUserManager.setFbo( mFbo );
 
+	StrokeManager::setup( mFbo.getSize());
+	mCalibrate.setup();
+
 	mFbo.bindFramebuffer();
 	gl::clear( Color::white() );
 	mFbo.unbindFramebuffer();
+
+	showAllParams( false );
 }
 
 void ProthesisApp::shutdown()
@@ -121,7 +143,7 @@ void ProthesisApp::shutdown()
 	params::PInterfaceGl::save();
 }
 
-void ProthesisApp::resize(ResizeEvent event)
+void ProthesisApp::resize( ResizeEvent event )
 {
 }
 
@@ -137,9 +159,7 @@ void ProthesisApp::keyDown(KeyEvent event)
 	}
 	else if( event.getChar() == 's' )
 	{
-		bool visible = mParams.isVisible();
-		mParams.show( ! visible );
-		mUserManager.showParams( ! visible );
+		showAllParams( ! mParams.isVisible());
 		if( isFullScreen())
 		{
 			if( ! mParams.isVisible())
@@ -163,20 +183,37 @@ void ProthesisApp::keyDown(KeyEvent event)
 
 void ProthesisApp::mouseDown(MouseEvent event)
 {
+	switch( mMouseAction )
+	{
+	case MA_NONE      : /* do nothing */                 break;
+	case MA_STROKE    : mUserManager.mouseDown( event ); break;
+	case MA_CALIBRATE : mCalibrate  .mouseDown( event ); break;
+	}
 }
 
 void ProthesisApp::mouseDrag(MouseEvent event)
 {
+	switch( mMouseAction )
+	{
+	case MA_NONE      : /* do nothing */                 break;
+	case MA_STROKE    : mUserManager.mouseDrag( event ); break;
+	case MA_CALIBRATE : mCalibrate  .mouseDrag( event ); break;
+	}
 }
 
 void ProthesisApp::mouseUp(MouseEvent event)
 {
+	switch( mMouseAction )
+	{
+	case MA_NONE      : /* do nothing */               break;
+	case MA_STROKE    : mUserManager.mouseUp( event ); break;
+	case MA_CALIBRATE : mCalibrate  .mouseUp( event ); break;
+	}
 }
 
 void ProthesisApp::update()
 {
 	mFps = getAverageFps();
-
 	mUserManager.update();
 }
 
@@ -186,7 +223,7 @@ void ProthesisApp::draw()
 	gl::setMatricesWindow( mFbo.getSize(), false );
 	gl::setViewport( mFbo.getBounds() );
 
-	mUserManager.draw();
+	mUserManager.draw( mCalibrate );
 
 	gl::enableAlphaBlending();
 	gl::color( ColorA::gray( 1.f, mFadeOutStrength ) );
@@ -202,7 +239,27 @@ void ProthesisApp::draw()
 	gl::clear( Color::black() );
 	gl::draw( mFbo.getTexture(), getWindowBounds() );
 
+	gl::color( Color::black());
+	gl::drawSolidRect( mCalibrate.getCoverLeft());
+	gl::drawSolidRect( mCalibrate.getCoverTop());
+	gl::drawSolidRect( mCalibrate.getCoverRight());
+	gl::drawSolidRect( mCalibrate.getCoverBottom());
+
 	params::InterfaceGl::draw();
+}
+
+void ProthesisApp::showAllParams( bool show )
+{
+	int barCount = TwGetBarCount();
+
+	int32_t visibleInt = show ? 1 : 0;
+	for ( int i = 0; i < barCount; ++i )
+	{
+		TwBar *bar = TwGetBarByIndex( i );
+		TwSetParam( bar, NULL, "visible", TW_PARAM_INT32, 1, &visibleInt );
+	}
+
+	TwDefine( "TW_HELP visible=false" );
 }
 
 CINDER_APP_BASIC( ProthesisApp, RendererGl() )
