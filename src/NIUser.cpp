@@ -254,10 +254,6 @@ void UserManager::update()
 
 void UserManager::drawStroke( const Calibrate &calibrate )
 {
-	gl::enable( GL_SCISSOR_TEST );
-	// FIXME: video is one pixel smaller?
-	glScissor( (GLint)mOutputRect.getX1(), (GLint)mOutputRect.getY1() + 1, (GLsizei)mOutputRect.getWidth(), (GLsizei)mOutputRect.getHeight() - 2 );
-
 	gl::enableAlphaBlending();
 
 	for( Users::iterator it = mUsers.begin(); it != mUsers.end(); ++it )
@@ -266,26 +262,23 @@ void UserManager::drawStroke( const Calibrate &calibrate )
 	}
 
 	gl::disableAlphaBlending();
-	gl::disable( GL_SCISSOR_TEST );
 }
 
 void UserManager::drawBody( const Calibrate &calibrate )
 {
-	gl::enable( GL_SCISSOR_TEST );
-	// FIXME: video is one pixel smaller?
-	glScissor( (GLint)mOutputRect.getX1(), (GLint)mOutputRect.getY1() + 1, (GLsizei)mOutputRect.getWidth(), (GLsizei)mOutputRect.getHeight() - 2 );
-
 	gl::enableAlphaBlending();
 
 #if USE_KINECT
 	if( mNI.checkNewVideoFrame())
 	{
-		Surface NISurface = mNI.getVideoImage();
-		mNITexture = Channel( NISurface );
+		mNITexture = gl::Texture( mNI.getVideoImage() );
 	}
 
 	if( mNITexture && mVideoShow )
-		gl::draw( mNITexture, app::getWindowBounds());
+	{
+		gl::color( Color::white() );
+		gl::draw( mNITexture, mSourceBounds );
+	}
 #endif
 
 	for( Users::iterator it = mUsers.begin(); it != mUsers.end(); ++it )
@@ -294,8 +287,6 @@ void UserManager::drawBody( const Calibrate &calibrate )
 	}
 
 	gl::disableAlphaBlending();
-
-	gl::disable( GL_SCISSOR_TEST );
 }
 
 void UserManager::setBounds( const Rectf &rect )

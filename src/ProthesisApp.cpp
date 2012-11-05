@@ -215,6 +215,7 @@ void ProthesisApp::setupDisplays()
 			mOutputAreaSpanning = secondaryArea;
 			int w = secondaryArea.getWidth() / 2;
 			int h = secondaryArea.getHeight() / 2;
+			mOutputAreaSpanning.setY1( 0 ); // top bar
 			mOutputAreaWindowed = Area( mMultiSize.x / 2 - w, 0,
 										mMultiSize.x / 2, h );
 		}
