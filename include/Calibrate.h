@@ -2,7 +2,7 @@
 
 #include "cinder/app/App.h"
 #include "cinder/Vector.h"
-#include "cinder/Area.h"
+#include "cinder/Rect.h"
 
 #include "PParams.h"
 
@@ -18,10 +18,10 @@ public:
 	void mouseUp  ( ci::app::MouseEvent event );
 
 	const ci::Vec2f transform( const ci::Vec2f pos ) const;
-	const ci::Area  getCoverLeft() const;
-	const ci::Area  getCoverRight() const;
-	const ci::Area  getCoverTop() const;
-	const ci::Area  getCoverBottom() const;
+	const ci::Rectf getCoverLeft() const;
+	const ci::Rectf getCoverRight() const;
+	const ci::Rectf getCoverTop() const;
+	const ci::Rectf getCoverBottom() const;
 
 	void reset();
 
@@ -45,10 +45,10 @@ private:
 	float                    mScaleX;
 	float                    mScaleY;
 
-	int                      mCoverLeft;
-	int                      mCoverRight;
-	int                      mCoverTop;
-	int                      mCoverBottom;
+	float                    mCoverLeft;
+	float                    mCoverRight;
+	float                    mCoverTop;
+	float                    mCoverBottom;
 
 	ci::Vec2i                mMousePos;
 
@@ -58,9 +58,8 @@ private:
 	static const float       MIN_SCALE;
 	static const float       MAX_SCALE;
 	static const float       STEP_SCALE;
-
-	static const int         MIN_COVER;
-	static const int         MAX_COVER;
-	static const int         STEP_COVER;
+	static const float       MIN_COVER;
+	static const float       MAX_COVER;
+	static const float       STEP_COVER;
 };
 

@@ -2,9 +2,11 @@
 
 #include <map>
 #include "cinder/app/App.h"
-#include "cinder/Color.h"
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/Texture.h"
+#include "cinder/Area.h"
+#include "cinder/Color.h"
+#include "cinder/Rect.h"
 
 #include "CiNI.h"
 #include "PParams.h"
@@ -61,6 +63,7 @@ public:
 	void drawBody  ( const Calibrate &calibrate );
 
 	void setBounds( const Rectf &rect );
+	void setSourceBounds( const ci::Area &area );
 	void clearStrokes();
 
 	void newUser       ( mndl::ni::UserTracker::UserEvent event );
@@ -95,6 +98,7 @@ private:
 
 	ci::Rectf       mOutputRect;
 	ci::RectMapping mOutputMapping;
+	ci::Area        mSourceBounds;
 
 	ci::gl::Texture     mNITexture;
 

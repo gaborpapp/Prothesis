@@ -1,5 +1,6 @@
 #include "cinder/app/AppBasic.h"
 #include "cinder/Cinder.h"
+#include "cinder/Display.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/Rect.h"
@@ -22,6 +23,7 @@ class ProthesisApp : public AppBasic
 
 		void prepareSettings(Settings *settings);
 		void setup();
+		void setupDisplays();
 		void shutdown();
 
 		void resize(ResizeEvent event);
@@ -59,19 +61,32 @@ class ProthesisApp : public AppBasic
 		float                mFps;
 		float                mFadeOutStrength;
 		MouseAction          mMouseAction;
+
+		// multidisplay
+		Vec2i mMultiSize; // size of the spanning window
+		Area mOutputArea; // projected output
+		Area mOutputAreaWindowed, mOutputAreaSpanning;
+		Vec2i mFullScreenPos; // fullscreen window position
+		bool mSpanning;
+
+		void setSpanningWindow( bool spanning );
+		bool isSpanningWindow() const;
 };
 
 void ProthesisApp::prepareSettings(Settings *settings)
 {
-	settings->setWindowSize(640, 480);
+	settings->setResizable( false );
 }
 
-ProthesisApp::ProthesisApp()
+ProthesisApp::ProthesisApp() :
+	mSpanning( false )
 {
 }
 
 void ProthesisApp::setup()
 {
+	setupDisplays();
+
 	gl::disableVerticalSync();
 
 	// params
@@ -151,8 +166,59 @@ void ProthesisApp::setup()
 	mBlendShader.uniform( "brush", 1 );
 	mBlendShader.unbind();
 
-//	setFullScreen( true );
-	showAllParams( false );
+	setSpanningWindow( false );
+	//showAllParams( false );
+}
+
+void ProthesisApp::setupDisplays()
+{
+	const vector< DisplayRef > displays = Display::getDisplays();
+
+	// main display is the first one
+	for ( vector< DisplayRef >::const_iterator it = displays.begin();
+			it != displays.end(); ++it )
+	{
+		console() << (*it)->getArea() << " " <<
+			(*it)->getWidth() << "x" << (*it)->getHeight() << endl;
+	}
+
+	if ( displays.size() == 1 )
+	{
+		mOutputAreaSpanning = displays[ 0 ]->getArea();
+		mOutputAreaWindowed = Area( 0, 0,
+				mOutputAreaSpanning.getWidth() / 2,
+				mOutputAreaSpanning.getHeight() / 2 );
+		mMultiSize = Vec2i( displays[ 0 ]->getWidth(), displays[ 0 ]->getHeight() );
+		mFullScreenPos = Vec2i::zero();
+	}
+	else
+	{
+		Area primaryArea = displays[ 0 ]->getArea();
+		Area secondaryArea = displays[ 1 ]->getArea();
+		mMultiSize = Vec2i( displays[ 0 ]->getWidth() + displays[ 1 ]->getWidth(),
+							math< int >::max( displays[ 0 ]->getHeight(),
+											  displays[ 1 ]->getHeight() ) );
+		int xS = displays[ 1 ]->getArea().getX1();
+		// secondary display on the left
+		if ( xS < 0 )
+		{
+			mFullScreenPos = Vec2i( xS, 0 );
+			mOutputAreaSpanning = secondaryArea - mFullScreenPos;
+			mOutputAreaSpanning.setY1( 0 ); // top bar
+			mOutputAreaWindowed = Area( 0, 0,
+										mOutputAreaSpanning.getWidth() / 2,
+										mOutputAreaSpanning.getHeight() / 2 );
+		}
+		else // secondary display on the right
+		{
+			mFullScreenPos = Vec2i::zero();
+			mOutputAreaSpanning = secondaryArea;
+			int w = secondaryArea.getWidth() / 2;
+			int h = secondaryArea.getHeight() / 2;
+			mOutputAreaWindowed = Area( mMultiSize.x / 2 - w, 0,
+										mMultiSize.x / 2, h );
+		}
+	}
 }
 
 void ProthesisApp::shutdown()
@@ -164,14 +230,43 @@ void ProthesisApp::resize( ResizeEvent event )
 {
 }
 
+void ProthesisApp::setSpanningWindow( bool spanning )
+{
+	if ( spanning )
+	{
+		setBorderless();
+		setWindowSize( mMultiSize.x, mMultiSize.y );
+		setWindowPos( mFullScreenPos );
+		setAlwaysOnTop();
+		mSpanning = true;
+		mOutputArea = mOutputAreaSpanning;
+	}
+	else
+	{
+		setBorderless( false );
+		setWindowSize( mMultiSize.x / 2, mMultiSize.y / 2 );
+		setWindowPos( Vec2i::zero() );
+		setAlwaysOnTop( false );
+		mSpanning = false;
+		mOutputArea = mOutputAreaWindowed;
+	}
+	mUserManager.setSourceBounds( mOutputArea );
+}
+
+bool ProthesisApp::isSpanningWindow() const
+{
+	return mSpanning;
+}
+
 void ProthesisApp::keyDown( KeyEvent event )
 {
 	switch ( event.getCode() )
 	{
 		case KeyEvent::KEY_f:
-			if ( !isFullScreen() )
+			if ( !isSpanningWindow() )
 			{
-				setFullScreen( true );
+				setSpanningWindow( true );
+
 				if ( mParams.isVisible() )
 					showCursor();
 				else
@@ -179,14 +274,14 @@ void ProthesisApp::keyDown( KeyEvent event )
 			}
 			else
 			{
-				setFullScreen( false );
+				setSpanningWindow( false );
 				showCursor();
 			}
 			break;
 
 		case KeyEvent::KEY_s:
 			showAllParams( !mParams.isVisible() );
-			if ( isFullScreen() )
+			if ( isSpanningWindow() )
 			{
 				if ( mParams.isVisible() )
 					showCursor();
@@ -290,16 +385,18 @@ void ProthesisApp::draw()
 	gl::setViewport( getWindowBounds() );
 
 	gl::clear( Color::black() );
-	gl::draw( mFbo.getTexture( mFboPingPongId ), getWindowBounds() );
+	gl::draw( mFbo.getTexture( mFboPingPongId ), mOutputArea );
 	mFboPingPongId = otherId;
 
 	mUserManager.drawBody( mCalibrate );
 
 	gl::color( Color::black());
-	gl::drawSolidRect( mCalibrate.getCoverLeft());
-	gl::drawSolidRect( mCalibrate.getCoverTop());
-	gl::drawSolidRect( mCalibrate.getCoverRight());
-	gl::drawSolidRect( mCalibrate.getCoverBottom());
+
+	RectMapping normCoverMap( Rectf( 0.f, 0.f, 1.f, 1.f ), mOutputArea );
+	gl::drawSolidRect( normCoverMap.map( mCalibrate.getCoverLeft() ) );
+	gl::drawSolidRect( normCoverMap.map( mCalibrate.getCoverRight() ) );
+	gl::drawSolidRect( normCoverMap.map( mCalibrate.getCoverTop() ) );
+	gl::drawSolidRect( normCoverMap.map( mCalibrate.getCoverBottom() ) );
 
 	params::InterfaceGl::draw();
 }

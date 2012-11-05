@@ -82,7 +82,7 @@ void User::drawJoints( const Calibrate &calibrate )
 	gl::color( mUserManager->mJointColor );
 	float sc = mUserManager->mOutputRect.getWidth() / 640.0f;
 	float scaledJointSize = mUserManager->mJointSize * sc;
-	RectMapping mapping( mUserManager->mOutputRect, app::getWindowBounds());
+	RectMapping mapping( mUserManager->mOutputRect, mUserManager->mSourceBounds );
 
 	for( JointPositions::const_iterator it = mJointPositions.begin(); it != mJointPositions.end(); ++it )
 	{
@@ -136,7 +136,7 @@ void User::drawLine( const Calibrate &calibrate, XnSkeletonJoint jointBeg, XnSke
 
 	Vec2f posEnd = it->second;
 
-	RectMapping mapping( mUserManager->mOutputRect, app::getWindowBounds());
+	RectMapping mapping( mUserManager->mOutputRect, mUserManager->mSourceBounds );
 	gl::drawLine( mapping.map( calibrate.transform( posBeg )), mapping.map( calibrate.transform( posEnd )));
 }
 
@@ -212,7 +212,8 @@ void UserManager::setup( const fs::path &path )
 	mParams.addPersistentParam( "Left foot"     , strokes, &mStrokeLeftFoot     , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
 	mParams.addPersistentParam( "Right foot"    , strokes, &mStrokeRightFoot    , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
 
-	setBounds( app::getWindowBounds());
+	mSourceBounds = app::getWindowBounds();
+	setBounds( mSourceBounds );
 }
 
 void UserManager::update()
@@ -309,6 +310,11 @@ void UserManager::setBounds( const Rectf &rect )
 		dRect.scaleCentered( mOutputRect.getHeight() / dRect.getHeight() );
 
 	mOutputMapping = RectMapping( kRect, dRect, true );
+}
+
+void UserManager::setSourceBounds( const Area &area )
+{
+	mSourceBounds = area;
 }
 
 void UserManager::clearStrokes()
@@ -420,7 +426,7 @@ bool UserManager::mouseDown( ci::app::MouseEvent event )
 {
 	mUsers[ 0 ] = UserRef( new User( this ));
 	mUsers[ 0 ]->addStroke( XN_SKEL_LEFT_HAND );
-	RectMapping mapping( app::getWindowBounds(), mOutputRect );
+	RectMapping mapping( mSourceBounds, mOutputRect );
 	mUsers[ 0 ]->addPos( XN_SKEL_LEFT_HAND, mapping.map( event.getPos() ) );
 
 	return true;
@@ -428,8 +434,9 @@ bool UserManager::mouseDown( ci::app::MouseEvent event )
 
 bool UserManager::mouseDrag( ci::app::MouseEvent event )
 {
-	RectMapping mapping( app::getWindowBounds(), mOutputRect );
-	mUsers[ 0 ]->addPos( XN_SKEL_LEFT_HAND, mapping.map( event.getPos() ) );
+	RectMapping mapping( mSourceBounds, mOutputRect );
+	if ( mUsers.find( 0 ) != mUsers.end() )
+		mUsers[ 0 ]->addPos( XN_SKEL_LEFT_HAND, mapping.map( event.getPos() ) );
 
 	return true;
 }

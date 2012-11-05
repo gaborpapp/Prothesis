@@ -11,20 +11,19 @@ const float Calibrate::STEP_TRANSLATE =  1.0f;
 const float Calibrate::MIN_SCALE      =  0.1f;
 const float Calibrate::MAX_SCALE      =  10.0f;
 const float Calibrate::STEP_SCALE     =  0.001f;
-
-const int   Calibrate::MIN_COVER      = 0;
-const int   Calibrate::MAX_COVER      = 400;
-const int   Calibrate::STEP_COVER     = 1;
+const float Calibrate::MIN_COVER      =  0.f;
+const float Calibrate::MAX_COVER      =  1.f;
+const float Calibrate::STEP_COVER     =  0.001f;
 
 Calibrate::Calibrate()
 : mTranslateX( 0.0f )
 , mTranslateY( 0.0f )
 , mScaleX( 1.0f )
 , mScaleY( 1.0f )
-, mCoverLeft( 0 )
-, mCoverRight( 0 )
-, mCoverTop( 0 )
-, mCoverBottom( 0 )
+, mCoverLeft( 0.f )
+, mCoverRight( 0.f )
+, mCoverTop( 0.f )
+, mCoverBottom( 0.f )
 {
 }
 
@@ -40,12 +39,17 @@ void Calibrate::setup()
 	mParams.addPersistentParam( "Scale X"     , &mScaleX        , 1.0f, getMinMaxStepString<float>( MIN_SCALE    , MAX_SCALE    , STEP_SCALE     ));
 	mParams.addPersistentParam( "Scale Y"     , &mScaleY        , 1.0f, getMinMaxStepString<float>( MIN_SCALE    , MAX_SCALE    , STEP_SCALE     ));
 	mParams.addText( "Cover", "help='Middle mouse button'" );
-	mParams.addPersistentParam( "Cover Left"  , &mCoverLeft     , 0   , getMinMaxStepString<int  >( MIN_COVER    , MAX_COVER    , STEP_COVER     ));
-	mParams.addPersistentParam( "Cover Right" , &mCoverRight    , 0   , getMinMaxStepString<int  >( MIN_COVER    , MAX_COVER    , STEP_COVER     ));
-	mParams.addPersistentParam( "Cover Top"   , &mCoverTop      , 0   , getMinMaxStepString<int  >( MIN_COVER    , MAX_COVER    , STEP_COVER     ));
-	mParams.addPersistentParam( "Cover Bottom", &mCoverBottom   , 0   , getMinMaxStepString<int  >( MIN_COVER    , MAX_COVER    , STEP_COVER     ));
+	mParams.addPersistentParam( "Cover Left"  , &mCoverLeft     , 0.f ,
+			getMinMaxStepString<float>( MIN_COVER, MAX_COVER, STEP_COVER ));
+	mParams.addPersistentParam( "Cover Right" , &mCoverRight    , 0.f ,
+			getMinMaxStepString<float>( MIN_COVER, MAX_COVER, STEP_COVER ));
+	mParams.addPersistentParam( "Cover Top"   , &mCoverTop      , 0.f ,
+			getMinMaxStepString<float>( MIN_COVER, MAX_COVER, STEP_COVER ));
+	mParams.addPersistentParam( "Cover Bottom", &mCoverBottom   , 0.f ,
+			getMinMaxStepString<float>( MIN_COVER, MAX_COVER, STEP_COVER ));
 	mParams.addSeparator();
 	mParams.addButton( "Reset", std::bind( &Calibrate::reset, this ));
+	mParams.setOptions( "", "refresh=.3" );
 }
 
 void Calibrate::mouseDown( MouseEvent event )
@@ -69,9 +73,9 @@ void Calibrate::mouseDrag( MouseEvent event )
 	}
 	else if( event.isMiddleDown())
 	{
-		mCoverLeft   = math<int  >::min( math<int  >::max( mCoverLeft  + ( mousePosAct.x - mMousePos.x ) * STEP_COVER    , MIN_COVER     ), MAX_COVER     );
+		mCoverLeft   = math< float >::clamp( mCoverLeft  + ( mousePosAct.x - mMousePos.x ) * STEP_COVER    , MIN_COVER, MAX_COVER     );
 		mCoverRight  = mCoverLeft;
-		mCoverTop    = math<int  >::min( math<int  >::max( mCoverTop   + ( mousePosAct.y - mMousePos.y ) * STEP_COVER    , MIN_COVER     ), MAX_COVER     );
+		mCoverTop    = math< float >::clamp( mCoverTop   + ( mousePosAct.y - mMousePos.y ) * STEP_COVER    , MIN_COVER, MAX_COVER     );
 		mCoverBottom = mCoverTop;
 	}
 
@@ -98,28 +102,24 @@ const Vec2f Calibrate::getScale() const
 	return Vec2f( mScaleX, mScaleY );
 }
 
-const Area Calibrate::getCoverLeft() const
+const Rectf Calibrate::getCoverLeft() const
 {
-	Area window = getWindowBounds();
-	return Area( 0, 0, mCoverLeft, window.getHeight());
+	return Rectf( 0.f, 0.f, mCoverLeft, 1.f );
 }
 
-const Area Calibrate::getCoverRight() const
+const Rectf Calibrate::getCoverRight() const
 {
-	Area window = getWindowBounds();
-	return Area( window.getWidth() - mCoverRight, 0, window.getWidth(), window.getHeight());
+	return Rectf( 1.f - mCoverRight, 0.f, 1.f, 1.f );
 }
 
-const Area Calibrate::getCoverTop() const
+const Rectf Calibrate::getCoverTop() const
 {
-	Area window = getWindowBounds();
-	return Area( 0, 0, window.getWidth(), mCoverTop );
+	return Rectf( 0.f, 0.f, 1.f, mCoverTop );
 }
 
-const Area Calibrate::getCoverBottom() const
+const Rectf Calibrate::getCoverBottom() const
 {
-	Area window = getWindowBounds();
-	return Area( 0, window.getHeight() - mCoverBottom, window.getWidth(), window.getHeight());
+	return Rectf( 0.f, 1.f - mCoverBottom, 1.f, 1.f);
 }
 
 void Calibrate::reset()
@@ -129,8 +129,8 @@ void Calibrate::reset()
 	mScaleX      = 1.0f;
 	mScaleY      = 1.0f;
 
-	mCoverLeft   = 0;
-	mCoverRight  = 0;
-	mCoverTop    = 0;
-	mCoverBottom = 0;
+	mCoverLeft   = 0.f;
+	mCoverRight  = 0.f;
+	mCoverTop    = 0.f;
+	mCoverBottom = 0.f;
 }
