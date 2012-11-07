@@ -1,3 +1,5 @@
+#include <boost/logic/tribool.hpp>
+
 #include "cinder/app/AppBasic.h"
 #include "cinder/Cinder.h"
 #include "cinder/Display.h"
@@ -67,7 +69,7 @@ class ProthesisApp : public AppBasic
 		Area mOutputArea; // projected output
 		Area mOutputAreaWindowed, mOutputAreaSpanning;
 		Vec2i mFullScreenPos; // fullscreen window position
-		bool mSpanning;
+		boost::logic::tribool mSpanning;
 
 		void setSpanningWindow( bool spanning );
 		bool isSpanningWindow() const;
@@ -79,7 +81,7 @@ void ProthesisApp::prepareSettings(Settings *settings)
 }
 
 ProthesisApp::ProthesisApp() :
-	mSpanning( false )
+	mSpanning( boost::logic::indeterminate )
 {
 }
 
@@ -166,8 +168,8 @@ void ProthesisApp::setup()
 	mBlendShader.uniform( "brush", 1 );
 	mBlendShader.unbind();
 
-	setSpanningWindow( false );
-	//showAllParams( false );
+	setSpanningWindow( true );
+	showAllParams( false );
 }
 
 void ProthesisApp::setupDisplays()
@@ -233,8 +235,14 @@ void ProthesisApp::resize( ResizeEvent event )
 
 void ProthesisApp::setSpanningWindow( bool spanning )
 {
+	static Vec2i lastWindowPos = getWindowPos();
+
+	if ( spanning == mSpanning )
+		return;
+
 	if ( spanning )
 	{
+		lastWindowPos = getWindowPos();
 		setBorderless();
 		setWindowSize( mMultiSize.x, mMultiSize.y );
 		setWindowPos( mFullScreenPos );
@@ -246,7 +254,7 @@ void ProthesisApp::setSpanningWindow( bool spanning )
 	{
 		setBorderless( false );
 		setWindowSize( mMultiSize.x / 2, mMultiSize.y / 2 );
-		setWindowPos( Vec2i::zero() );
+		setWindowPos( lastWindowPos );
 		setAlwaysOnTop( false );
 		mSpanning = false;
 		mOutputArea = mOutputAreaWindowed;
