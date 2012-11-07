@@ -110,6 +110,7 @@ private:
 	bool                     mJointShow;
 	bool                     mLineShow;
 	bool                     mVideoShow;
+	bool                     mVideoMirrored;
 	float                    mJointSize;
 	ci::ColorA               mJointColor;
 

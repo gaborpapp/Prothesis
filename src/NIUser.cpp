@@ -174,7 +174,6 @@ void UserManager::setup( const fs::path &path )
 	else
 		mNI = OpenNI( path );
 
-	mNI.setMirrored( true );
 	mNI.setDepthAligned();
 	mNI.start();
 	mNIUserTracker = mNI.getUserTracker();
@@ -188,6 +187,7 @@ void UserManager::setup( const fs::path &path )
 	mParams.addPersistentParam( "Skeleton smoothing" , &mSkeletonSmoothing, 0.9, "min=0 max=1 step=.05");
 	mParams.addPersistentParam( "Joint show"         , &mJointShow, true  );
 	mParams.addPersistentParam( "Line show"          , &mLineShow , true  );
+	mParams.addPersistentParam( "Mirror"             , &mVideoMirrored, true );
 	mParams.addPersistentParam( "Video show"         , &mVideoShow, false );
 	mParams.addPersistentParam( "Joint size"         , &mJointSize, 5.0, "min=0 max=50 step=.5" );
 	mParams.addPersistentParam( "Joint Color"        , &mJointColor, ColorA::hexA( 0x50c81e1e ) );
@@ -227,6 +227,8 @@ void UserManager::update()
 
 #if USE_KINECT
 	mNIUserTracker.setSmoothing( mSkeletonSmoothing );
+	if ( mNI.isMirrored() != mVideoMirrored )
+		mNI.setMirrored( mVideoMirrored );
 
 	vector< unsigned > users = mNIUserTracker.getUsers();
 	for( vector< unsigned >::const_iterator it = users.begin(); it != users.end(); ++it )
