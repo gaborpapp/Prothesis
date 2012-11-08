@@ -18,6 +18,7 @@ public:
 	void mouseUp  ( ci::app::MouseEvent event );
 
 	const ci::Vec2f transform( const ci::Vec2f pos ) const;
+	const ci::Vec2f transform( const ci::Vec2f pos, const ci::Vec2f posRef ) const;
 	const ci::Rectf getCoverLeft() const;
 	const ci::Rectf getCoverRight() const;
 	const ci::Rectf getCoverTop() const;

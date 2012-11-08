@@ -46,13 +46,13 @@ void StrokeManager::update()
 	}
 }
 
-void StrokeManager::draw( const Calibrate &calibrate )
+void StrokeManager::draw( const Calibrate &calibrate, const Vec2f &posRef )
 {
 	for( Strokes::const_iterator it = mStrokes.begin(); it != mStrokes.end(); ++it )
 	{
 		StrokeRef stroke = it->second;
 
-		stroke->draw( calibrate );
+		stroke->draw( calibrate, posRef );
 	}
 }
 

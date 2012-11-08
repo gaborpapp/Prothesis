@@ -46,6 +46,7 @@ private:
 	UserManager     *mUserManager;
 	JointPositions   mJointPositions;
 	StrokeManager    mStrokeManager;
+	ci::Vec2f        mPosRef;
 };
 
 class UserManager : mndl::ni::UserTracker::Listener
@@ -95,6 +96,7 @@ private:
 
 	Joints  mJoints;
 	Brushes mBrushes;
+	XnSkeletonJoint mJointRef;
 
 	ci::Rectf       mOutputRect;
 	ci::RectMapping mOutputMapping;

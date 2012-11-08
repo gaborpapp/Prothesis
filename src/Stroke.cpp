@@ -67,7 +67,7 @@ void Stroke::update()
 	mPoints.push_back( StrokePoint( mPos * Vec2f( mWindowSize ), ang, mU ) );
 }
 
-void Stroke::draw( const Calibrate &calibrate )
+void Stroke::draw( const Calibrate &calibrate, const Vec2f &posRef )
 {
 	if( ! mActive
 	 || ! mBrush )
@@ -97,9 +97,9 @@ void Stroke::draw( const Calibrate &calibrate )
 			{
 				const StrokePoint *s = &(*i);
 				glTexCoord2f( s->u, v0 );
-				gl::vertex( calibrate.transform( s->p + c0 * s->w ));
+				gl::vertex( calibrate.transform( s->p + c0 * s->w, posRef ));
 				glTexCoord2f( s->u, v1 );
-				gl::vertex( calibrate.transform( s->p + c1 * s->w ));
+				gl::vertex( calibrate.transform( s->p + c1 * s->w, posRef ));
 			}
 			glEnd();
 		}

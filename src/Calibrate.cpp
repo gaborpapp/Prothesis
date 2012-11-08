@@ -89,7 +89,12 @@ void Calibrate::mouseUp( MouseEvent event )
 
 const Vec2f Calibrate::transform( const Vec2f pos ) const
 {
-	return ( pos + getTranslate()) * getScale();
+	return (( pos * getScale()) + getTranslate());
+}
+
+const Vec2f Calibrate::transform( const Vec2f pos, const Vec2f posRef ) const
+{
+	return ((( pos - posRef ) * getScale()) + getTranslate()) + posRef;
 }
 
 const Vec2f Calibrate::getTranslate() const

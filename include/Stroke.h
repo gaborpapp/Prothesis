@@ -17,7 +17,7 @@ class Stroke
 
 		void addPos( ci::Vec2f point );
 		void update();
-		void draw( const Calibrate &calibrate );
+		void draw( const Calibrate &calibrate, const ci::Vec2f &posRef );
 
 		void setActive( bool active );
 

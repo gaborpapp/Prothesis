@@ -52,6 +52,9 @@ void User::addPos( XnSkeletonJoint jointId, Vec2f pos )
 	mStrokeManager.setActive( jointId , mUserManager->getStrokeActive( jointId ));
 	mStrokeManager.setBrush ( jointId , mUserManager->getStrokeBrush ( jointId ));
 	mStrokeManager.addPos( jointId , strokePos );
+
+	if( jointId == mUserManager->mJointRef )
+		mPosRef = pos;
 }
 
 void User::addStroke( XnSkeletonJoint jointId )
@@ -66,7 +69,8 @@ void User::clearStrokes()
 
 void User::drawStroke( const Calibrate &calibrate )
 {
-	mStrokeManager.draw( calibrate );
+	Vec2f strokePos = mPosRef / mUserManager->mOutputRect.getSize();
+	mStrokeManager.draw( calibrate, strokePos );
 }
 
 void User::drawBody( const Calibrate &calibrate )
@@ -94,7 +98,7 @@ void User::drawJoints( const Calibrate &calibrate )
 			continue;
 
 		Vec2f pos = it->second;
-		gl::drawSolidCircle( mapping.map( calibrate.transform( pos )), scaledJointSize );
+		gl::drawSolidCircle( mapping.map( calibrate.transform( pos, mPosRef )), scaledJointSize );
 	}
 	gl::color( ColorA( 1, 1, 1, 1 ));
 }
@@ -137,7 +141,7 @@ void User::drawLine( const Calibrate &calibrate, XnSkeletonJoint jointBeg, XnSke
 	Vec2f posEnd = it->second;
 
 	RectMapping mapping( mUserManager->mOutputRect, mUserManager->mSourceBounds );
-	gl::drawLine( mapping.map( calibrate.transform( posBeg )), mapping.map( calibrate.transform( posEnd )));
+	gl::drawLine( mapping.map( calibrate.transform( posBeg, mPosRef )), mapping.map( calibrate.transform( posEnd, mPosRef )));
 }
 
 UserManager::UserManager()
@@ -156,6 +160,8 @@ UserManager::UserManager()
 	mJoints.push_back( XN_SKEL_NECK           );  // will not be visible only for body line
 	mJoints.push_back( XN_SKEL_LEFT_HIP       );  // will not be visible only for body line
 	mJoints.push_back( XN_SKEL_RIGHT_HIP      );  // will not be visible only for body line
+
+	mJointRef = XN_SKEL_TORSO;
 }
 
 void UserManager::setup( const fs::path &path )
@@ -180,14 +186,14 @@ void UserManager::setup( const fs::path &path )
 	mNIUserTracker.addListener( this );
 #endif
 
-	mParams = params::PInterfaceGl( "Kinect", Vec2i( 250, 310 ) );
+	mParams = params::PInterfaceGl( "Kinect", Vec2i( 250, 330 ) );
 	mParams.setPosition( Vec2i( 224, 16 ) );
 	mParams.addPersistentSizeAndPosition();
 	mParams.addText("Tracking");
 	mParams.addPersistentParam( "Skeleton smoothing" , &mSkeletonSmoothing, 0.9, "min=0 max=1 step=.05");
 	mParams.addPersistentParam( "Joint show"         , &mJointShow, true  );
 	mParams.addPersistentParam( "Line show"          , &mLineShow , true  );
-	mParams.addPersistentParam( "Mirror"             , &mVideoMirrored, true );
+	mParams.addPersistentParam( "Mirror"             , &mVideoMirrored, false );
 	mParams.addPersistentParam( "Video show"         , &mVideoShow, false );
 	mParams.addPersistentParam( "Joint size"         , &mJointSize, 5.0, "min=0 max=50 step=.5" );
 	mParams.addPersistentParam( "Joint Color"        , &mJointColor, ColorA::hexA( 0x50c81e1e ) );
@@ -429,7 +435,7 @@ bool UserManager::mouseDrag( ci::app::MouseEvent event )
 {
 	RectMapping mapping( mSourceBounds, mOutputRect );
 	if ( mUsers.find( 0 ) != mUsers.end() )
-		mUsers[ 0 ]->addPos( XN_SKEL_LEFT_HAND, mapping.map( event.getPos() ) );
+	mUsers[ 0 ]->addPos( XN_SKEL_LEFT_HAND, mapping.map( event.getPos() ) );
 
 	return true;
 }

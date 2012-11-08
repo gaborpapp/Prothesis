@@ -19,7 +19,7 @@ public:
 	static void setup( ci::Vec2i size );
 
 	void update();
-	void draw( const Calibrate &calibrate );
+	void draw( const Calibrate &calibrate, const ci::Vec2f &posRef );
 
 	void addPos( int id, ci::Vec2f pos );
 	void setActive( int id, bool active );
