@@ -143,7 +143,8 @@ void ProthesisApp::setup()
 
 	gl::Fbo::Format format;
 	format.enableDepthBuffer( false );
-	format.setSamples( 4 );
+	// FIXME: enabling MSAA results in white stripes between stroke triangles
+	//format.setSamples( 4 );
 	format.setColorInternalFormat( GL_RGBA32F_ARB );
 	format.enableColorBuffer( true, 3 );
 	mFbo = gl::Fbo( 1024, 768, format );
