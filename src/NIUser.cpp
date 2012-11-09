@@ -181,7 +181,7 @@ void UserManager::setup( const fs::path &path )
 	mParams.addPersistentSizeAndPosition();
 	mParams.addText("Tracking");
 	mKinectProgress = "Connecting...\0\0\0\0\0\0\0\0\0";
-	mParams.addParam( "Kinect", &mKinectProgress, "", false );
+	mParams.addParam( "Kinect", &mKinectProgress, "", true );
 	mParams.addPersistentParam( "Skeleton smoothing" , &mSkeletonSmoothing, 0.9, "min=0 max=1 step=.05");
 	mParams.addPersistentParam( "Joint show"         , &mJointShow, true  );
 	mParams.addPersistentParam( "Line show"          , &mLineShow , true  );
