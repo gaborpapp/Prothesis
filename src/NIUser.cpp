@@ -494,16 +494,21 @@ void UserManager::keyUp( KeyEvent event )
 {
 	switch( event.getCode())
 	{
-	case KeyEvent::KEY_0 : mStrokeActive[ LEFT_HAND      ] = ! mStrokeActive[ LEFT_HAND      ]; break;
-	case KeyEvent::KEY_1 : mStrokeActive[ LEFT_SHOULDER  ] = ! mStrokeActive[ LEFT_SHOULDER  ]; break;
-	case KeyEvent::KEY_2 : mStrokeActive[ HEAD           ] = ! mStrokeActive[ HEAD           ]; break;
-	case KeyEvent::KEY_3 : mStrokeActive[ RIGHT_HAND     ] = ! mStrokeActive[ RIGHT_HAND     ]; break;
-	case KeyEvent::KEY_4 : mStrokeActive[ RIGHT_SHOULDER ] = ! mStrokeActive[ RIGHT_SHOULDER ]; break;
-	case KeyEvent::KEY_5 : mStrokeActive[ TORSO          ] = ! mStrokeActive[ TORSO          ]; break;
-	case KeyEvent::KEY_6 : mStrokeActive[ LEFT_KNEE      ] = ! mStrokeActive[ LEFT_KNEE      ]; break;
-	case KeyEvent::KEY_7 : mStrokeActive[ RIGHT_KNEE     ] = ! mStrokeActive[ RIGHT_KNEE     ]; break;
-	case KeyEvent::KEY_8 : mStrokeActive[ LEFT_FOOT      ] = ! mStrokeActive[ LEFT_FOOT      ]; break;
-	case KeyEvent::KEY_9 : mStrokeActive[ RIGHT_FOOT     ] = ! mStrokeActive[ RIGHT_FOOT     ]; break;
+	case KeyEvent::KEY_0 :
+	case KeyEvent::KEY_1 :
+	case KeyEvent::KEY_2 :
+	case KeyEvent::KEY_3 :
+	case KeyEvent::KEY_4 :
+	case KeyEvent::KEY_5 :
+	case KeyEvent::KEY_6 :
+	case KeyEvent::KEY_7 :
+	case KeyEvent::KEY_8 :
+	case KeyEvent::KEY_9 :
+		{
+			int pos = event.getCode() - KeyEvent::KEY_0;
+			mStrokeActive[ pos ] = ! mStrokeActive[ pos ];
+		}
+		break;
 	}
 }
 
