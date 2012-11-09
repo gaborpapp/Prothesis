@@ -89,10 +89,22 @@ private:
 
 	bool            getStrokeActive( XnSkeletonJoint jointId );
 	ci::gl::Texture getStrokeBrush ( XnSkeletonJoint jointId );
-	void            setStrokeSave();
-
 
 private:
+	enum JointType
+	{
+		LEFT_HAND      = 0,
+		LEFT_SHOULDER  = 1,
+		HEAD           = 2,
+		RIGHT_HAND     = 3,
+		RIGHT_SHOULDER = 4,
+		TORSO          = 5,
+		LEFT_KNEE      = 6,
+		RIGHT_KNEE     = 7,
+		LEFT_FOOT      = 8,
+		RIGHT_FOOT     = 9,
+	};
+
 	mndl::ni::OpenNI      mNI;
 	mndl::ni::UserTracker mNIUserTracker;
 
@@ -119,27 +131,8 @@ private:
 	float                    mJointSize;
 	ci::ColorA               mJointColor;
 
-	int                      mStrokeLeftHand;
-	int                      mStrokeLeftShoulder;
-	int                      mStrokeHead;
-	int                      mStrokeRightHand;
-	int                      mStrokeRightShoulder;
-	int                      mStrokeTorso;
-	int                      mStrokeLeftKnee;
-	int                      mStrokeRightKnee;
-	int                      mStrokeLeftFoot;
-	int                      mStrokeRightFoot;
-
-	int                      mStrokeLeftHandSave;
-	int                      mStrokeLeftShoulderSave;
-	int                      mStrokeHeadSave;
-	int                      mStrokeRightHandSave;
-	int                      mStrokeRightShoulderSave;
-	int                      mStrokeTorsoSave;
-	int                      mStrokeLeftKneeSave;
-	int                      mStrokeRightKneeSave;
-	int                      mStrokeLeftFootSave;
-	int                      mStrokeRightFootSave;
+	int                      mStrokeSelect[10];
+	bool                     mStrokeActive[10];
 
 	std::thread              mThread;
 	std::mutex               mMutex;

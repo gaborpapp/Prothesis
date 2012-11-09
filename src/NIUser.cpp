@@ -176,7 +176,7 @@ void UserManager::setup( const fs::path &path )
 
 	mThread = thread( bind( &UserManager::openKinect, this, path ) );
 
-	mParams = params::PInterfaceGl( "Kinect", Vec2i( 250, 330 ) );
+	mParams = params::PInterfaceGl( "Kinect", Vec2i( 250, 500 ) );
 	mParams.setPosition( Vec2i( 224, 16 ) );
 	mParams.addPersistentSizeAndPosition();
 	mParams.addText("Tracking");
@@ -193,25 +193,33 @@ void UserManager::setup( const fs::path &path )
 	mParams.addSeparator();
 
 	vector< string > strokes;
-	strokes.push_back( "OFF" );
+	strokes.push_back( "No Stroke" );
 	for( Brushes::iterator it = mBrushes.begin(); it != mBrushes.end(); ++it )
 		strokes.push_back( it->first );
 	int strokePos  = 1;
 	int strokeSize = mBrushes.size();
 
-	mParams.addPersistentParam( "Left hand"     , strokes, &mStrokeLeftHand     , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Left shoulder" , strokes, &mStrokeLeftShoulder , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Head"          , strokes, &mStrokeHead         , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Right hand"    , strokes, &mStrokeRightHand    , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Right shoulder", strokes, &mStrokeRightShoulder, strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Torso"         , strokes, &mStrokeTorso        , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Left knee"     , strokes, &mStrokeLeftKnee     , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Right knee"    , strokes, &mStrokeRightKnee    , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Left foot"     , strokes, &mStrokeLeftFoot     , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Right foot"    , strokes, &mStrokeRightFoot    , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Left hand active"     ,          &mStrokeActive[ LEFT_HAND      ], true                                    );
+	mParams.addPersistentParam( "Left hand"            , strokes, &mStrokeSelect[ LEFT_HAND      ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Left shoulder active" ,          &mStrokeActive[ LEFT_SHOULDER  ], true                                    );
+	mParams.addPersistentParam( "Left shoulder"        , strokes, &mStrokeSelect[ LEFT_SHOULDER  ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Head active"          ,          &mStrokeActive[ HEAD           ], true                                    );
+	mParams.addPersistentParam( "Head"                 , strokes, &mStrokeSelect[ HEAD           ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Right hand active"    ,          &mStrokeActive[ RIGHT_HAND     ], true                                    );
+	mParams.addPersistentParam( "Right hand"           , strokes, &mStrokeSelect[ RIGHT_HAND     ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Right shoulder active",          &mStrokeActive[ RIGHT_SHOULDER ], true                                    );
+	mParams.addPersistentParam( "Right shoulder"       , strokes, &mStrokeSelect[ RIGHT_SHOULDER ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Torso active"         ,          &mStrokeActive[ TORSO          ], true                                    );
+	mParams.addPersistentParam( "Torso"                , strokes, &mStrokeSelect[ TORSO          ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Left knee active"     ,          &mStrokeActive[ LEFT_KNEE      ], true                                    );
+	mParams.addPersistentParam( "Left knee"            , strokes, &mStrokeSelect[ LEFT_KNEE      ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Right knee active"    ,          &mStrokeActive[ RIGHT_KNEE     ], true                                    );
+	mParams.addPersistentParam( "Right knee"           , strokes, &mStrokeSelect[ RIGHT_KNEE     ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Left foot active"     ,          &mStrokeActive[ LEFT_FOOT      ], true                                    );
+	mParams.addPersistentParam( "Left foot"            , strokes, &mStrokeSelect[ LEFT_FOOT      ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.addPersistentParam( "Right foot active"    ,          &mStrokeActive[ RIGHT_FOOT     ], true                                    );
+	mParams.addPersistentParam( "Right foot"           , strokes, &mStrokeSelect[ RIGHT_FOOT     ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
 	mParams.setOptions( "", "refresh=.3" );
-
-	setStrokeSave();
 
 	mSourceBounds = app::getWindowBounds();
 	setBounds( mSourceBounds );
@@ -400,16 +408,16 @@ bool UserManager::getStrokeActive( XnSkeletonJoint jointId )
 {
 	switch( jointId )
 	{
-	case XN_SKEL_LEFT_HAND      : return mStrokeLeftHand      == 0 ? false : true;
-	case XN_SKEL_LEFT_SHOULDER  : return mStrokeLeftShoulder  == 0 ? false : true;
-	case XN_SKEL_HEAD           : return mStrokeHead          == 0 ? false : true;
-	case XN_SKEL_RIGHT_HAND     : return mStrokeRightHand     == 0 ? false : true;
-	case XN_SKEL_RIGHT_SHOULDER : return mStrokeRightShoulder == 0 ? false : true;
-	case XN_SKEL_TORSO          : return mStrokeTorso         == 0 ? false : true;
-	case XN_SKEL_LEFT_KNEE      : return mStrokeLeftKnee      == 0 ? false : true;
-	case XN_SKEL_RIGHT_KNEE     : return mStrokeRightKnee     == 0 ? false : true;
-	case XN_SKEL_LEFT_FOOT      : return mStrokeLeftFoot      == 0 ? false : true;
-	case XN_SKEL_RIGHT_FOOT     : return mStrokeRightFoot     == 0 ? false : true;
+	case XN_SKEL_LEFT_HAND      : return mStrokeActive[ LEFT_HAND      ];
+	case XN_SKEL_LEFT_SHOULDER  : return mStrokeActive[ LEFT_SHOULDER  ];
+	case XN_SKEL_HEAD           : return mStrokeActive[ HEAD           ];
+	case XN_SKEL_RIGHT_HAND     : return mStrokeActive[ RIGHT_HAND     ];
+	case XN_SKEL_RIGHT_SHOULDER : return mStrokeActive[ RIGHT_SHOULDER ];
+	case XN_SKEL_TORSO          : return mStrokeActive[ TORSO          ];
+	case XN_SKEL_LEFT_KNEE      : return mStrokeActive[ LEFT_KNEE      ];
+	case XN_SKEL_RIGHT_KNEE     : return mStrokeActive[ RIGHT_KNEE     ];
+	case XN_SKEL_LEFT_FOOT      : return mStrokeActive[ LEFT_FOOT      ];
+	case XN_SKEL_RIGHT_FOOT     : return mStrokeActive[ RIGHT_FOOT     ];
 	}
 
 	return false;
@@ -419,16 +427,16 @@ gl::Texture UserManager::getStrokeBrush( XnSkeletonJoint jointId )
 {
 	switch( jointId )
 	{
-	case XN_SKEL_LEFT_HAND      : if( mStrokeLeftHand      != 0 ) return mBrushes[mStrokeLeftHand      - 1 ].second; break;
-	case XN_SKEL_LEFT_SHOULDER  : if( mStrokeLeftShoulder  != 0 ) return mBrushes[mStrokeLeftShoulder  - 1 ].second; break;
-	case XN_SKEL_HEAD           : if( mStrokeHead          != 0 ) return mBrushes[mStrokeHead          - 1 ].second; break;
-	case XN_SKEL_RIGHT_HAND     : if( mStrokeRightHand     != 0 ) return mBrushes[mStrokeRightHand     - 1 ].second; break;
-	case XN_SKEL_RIGHT_SHOULDER : if( mStrokeRightShoulder != 0 ) return mBrushes[mStrokeRightShoulder - 1 ].second; break;
-	case XN_SKEL_TORSO          : if( mStrokeTorso         != 0 ) return mBrushes[mStrokeTorso         - 1 ].second; break;
-	case XN_SKEL_LEFT_KNEE      : if( mStrokeLeftKnee      != 0 ) return mBrushes[mStrokeLeftKnee      - 1 ].second; break;
-	case XN_SKEL_RIGHT_KNEE     : if( mStrokeRightKnee     != 0 ) return mBrushes[mStrokeRightKnee     - 1 ].second; break;
-	case XN_SKEL_LEFT_FOOT      : if( mStrokeLeftFoot      != 0 ) return mBrushes[mStrokeLeftFoot      - 1 ].second; break;
-	case XN_SKEL_RIGHT_FOOT     : if( mStrokeRightFoot     != 0 ) return mBrushes[mStrokeRightFoot     - 1 ].second; break;
+	case XN_SKEL_LEFT_HAND      : if( mStrokeSelect[ LEFT_HAND      ] != 0 ) return mBrushes[ mStrokeSelect[ LEFT_HAND      ] - 1 ].second; break;
+	case XN_SKEL_LEFT_SHOULDER  : if( mStrokeSelect[ LEFT_SHOULDER  ] != 0 ) return mBrushes[ mStrokeSelect[ LEFT_SHOULDER  ] - 1 ].second; break;
+	case XN_SKEL_HEAD           : if( mStrokeSelect[ HEAD           ] != 0 ) return mBrushes[ mStrokeSelect[ HEAD           ] - 1 ].second; break;
+	case XN_SKEL_RIGHT_HAND     : if( mStrokeSelect[ RIGHT_HAND     ] != 0 ) return mBrushes[ mStrokeSelect[ RIGHT_HAND     ] - 1 ].second; break;
+	case XN_SKEL_RIGHT_SHOULDER : if( mStrokeSelect[ RIGHT_SHOULDER ] != 0 ) return mBrushes[ mStrokeSelect[ RIGHT_SHOULDER ] - 1 ].second; break;
+	case XN_SKEL_TORSO          : if( mStrokeSelect[ TORSO          ] != 0 ) return mBrushes[ mStrokeSelect[ TORSO          ] - 1 ].second; break;
+	case XN_SKEL_LEFT_KNEE      : if( mStrokeSelect[ LEFT_KNEE      ] != 0 ) return mBrushes[ mStrokeSelect[ LEFT_KNEE      ] - 1 ].second; break;
+	case XN_SKEL_RIGHT_KNEE     : if( mStrokeSelect[ RIGHT_KNEE     ] != 0 ) return mBrushes[ mStrokeSelect[ RIGHT_KNEE     ] - 1 ].second; break;
+	case XN_SKEL_LEFT_FOOT      : if( mStrokeSelect[ LEFT_FOOT      ] != 0 ) return mBrushes[ mStrokeSelect[ LEFT_FOOT      ] - 1 ].second; break;
+	case XN_SKEL_RIGHT_FOOT     : if( mStrokeSelect[ RIGHT_FOOT     ] != 0 ) return mBrushes[ mStrokeSelect[ RIGHT_FOOT     ] - 1 ].second; break;
 	}
 
 	return gl::Texture();
@@ -486,31 +494,17 @@ void UserManager::keyUp( KeyEvent event )
 {
 	switch( event.getCode())
 	{
-	case KeyEvent::KEY_0 : if( mStrokeLeftHand      != 0 ) { mStrokeLeftHandSave      = mStrokeLeftHand;      mStrokeLeftHand      = 0; } else { mStrokeLeftHand      = mStrokeLeftHandSave;      } break;
-	case KeyEvent::KEY_1 : if( mStrokeLeftShoulder  != 0 ) { mStrokeLeftShoulderSave  = mStrokeLeftShoulder;  mStrokeLeftShoulder  = 0; } else { mStrokeLeftShoulder  = mStrokeLeftShoulderSave;  } break;
-	case KeyEvent::KEY_2 : if( mStrokeHead          != 0 ) { mStrokeHeadSave          = mStrokeHead;          mStrokeHead          = 0; } else { mStrokeHead          = mStrokeHeadSave;          } break;
-	case KeyEvent::KEY_3 : if( mStrokeRightHand     != 0 ) { mStrokeRightHandSave     = mStrokeRightHand;     mStrokeRightHand     = 0; } else { mStrokeRightHand     = mStrokeRightHandSave;     } break;
-	case KeyEvent::KEY_4 : if( mStrokeRightShoulder != 0 ) { mStrokeRightShoulderSave = mStrokeRightShoulder; mStrokeRightShoulder = 0; } else { mStrokeRightShoulder = mStrokeRightShoulderSave; } break;
-	case KeyEvent::KEY_5 : if( mStrokeTorso         != 0 ) { mStrokeTorsoSave         = mStrokeTorso;         mStrokeTorso         = 0; } else { mStrokeTorso         = mStrokeTorsoSave;         } break;
-	case KeyEvent::KEY_6 : if( mStrokeLeftKnee      != 0 ) { mStrokeLeftKneeSave      = mStrokeLeftKnee;      mStrokeLeftKnee      = 0; } else { mStrokeLeftKnee      = mStrokeLeftKneeSave;      } break;
-	case KeyEvent::KEY_7 : if( mStrokeRightKnee     != 0 ) { mStrokeRightKneeSave     = mStrokeRightKnee;     mStrokeRightKnee     = 0; } else { mStrokeRightKnee     = mStrokeRightKneeSave;     } break;
-	case KeyEvent::KEY_8 : if( mStrokeLeftFoot      != 0 ) { mStrokeLeftFootSave      = mStrokeLeftFoot;      mStrokeLeftFoot      = 0; } else { mStrokeLeftFoot      = mStrokeLeftFootSave;      } break;
-	case KeyEvent::KEY_9 : if( mStrokeRightFoot     != 0 ) { mStrokeRightFootSave     = mStrokeRightFoot;     mStrokeRightFoot     = 0; } else { mStrokeRightFoot     = mStrokeRightFootSave;     } break;
+	case KeyEvent::KEY_0 : mStrokeActive[ LEFT_HAND      ] = ! mStrokeActive[ LEFT_HAND      ]; break;
+	case KeyEvent::KEY_1 : mStrokeActive[ LEFT_SHOULDER  ] = ! mStrokeActive[ LEFT_SHOULDER  ]; break;
+	case KeyEvent::KEY_2 : mStrokeActive[ HEAD           ] = ! mStrokeActive[ HEAD           ]; break;
+	case KeyEvent::KEY_3 : mStrokeActive[ RIGHT_HAND     ] = ! mStrokeActive[ RIGHT_HAND     ]; break;
+	case KeyEvent::KEY_4 : mStrokeActive[ RIGHT_SHOULDER ] = ! mStrokeActive[ RIGHT_SHOULDER ]; break;
+	case KeyEvent::KEY_5 : mStrokeActive[ TORSO          ] = ! mStrokeActive[ TORSO          ]; break;
+	case KeyEvent::KEY_6 : mStrokeActive[ LEFT_KNEE      ] = ! mStrokeActive[ LEFT_KNEE      ]; break;
+	case KeyEvent::KEY_7 : mStrokeActive[ RIGHT_KNEE     ] = ! mStrokeActive[ RIGHT_KNEE     ]; break;
+	case KeyEvent::KEY_8 : mStrokeActive[ LEFT_FOOT      ] = ! mStrokeActive[ LEFT_FOOT      ]; break;
+	case KeyEvent::KEY_9 : mStrokeActive[ RIGHT_FOOT     ] = ! mStrokeActive[ RIGHT_FOOT     ]; break;
 	}
-}
-
-void UserManager::setStrokeSave()
-{
-	mStrokeLeftHandSave      = mStrokeLeftHand;
-	mStrokeLeftShoulderSave  = mStrokeLeftShoulder;
-	mStrokeHeadSave          = mStrokeHead;
-	mStrokeRightHandSave     = mStrokeRightHand;
-	mStrokeRightShoulderSave = mStrokeRightShoulder;
-	mStrokeTorsoSave         = mStrokeTorso;
-	mStrokeLeftKneeSave      = mStrokeLeftKnee;
-	mStrokeRightKneeSave     = mStrokeRightKnee;
-	mStrokeLeftFootSave      = mStrokeLeftFoot;
-	mStrokeRightFootSave     = mStrokeRightFoot;
 }
 
 } // namespace cinder
