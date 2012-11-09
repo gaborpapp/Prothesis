@@ -31,6 +31,7 @@ class ProthesisApp : public AppBasic
 		void resize(ResizeEvent event);
 
 		void keyDown(KeyEvent event);
+		void keyUp(KeyEvent event );
 
 		void mouseDown(MouseEvent event);
 		void mouseDrag(MouseEvent event);
@@ -144,7 +145,7 @@ void ProthesisApp::setup()
 	gl::Fbo::Format format;
 	format.enableDepthBuffer( false );
 	// FIXME: enabling MSAA results in white stripes between stroke triangles
-	//format.setSamples( 4 );
+// 	format.setSamples( 4 );
 	format.setColorInternalFormat( GL_RGBA32F_ARB );
 	format.enableColorBuffer( true, 3 );
 	mFbo = gl::Fbo( 1024, 768, format );
@@ -314,6 +315,10 @@ void ProthesisApp::keyDown( KeyEvent event )
 	}
 }
 
+void ProthesisApp::keyUp( KeyEvent event )
+{
+	mUserManager.keyUp( event );
+}
 
 void ProthesisApp::mouseDown(MouseEvent event)
 {

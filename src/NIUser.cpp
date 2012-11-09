@@ -210,6 +210,8 @@ void UserManager::setup( const fs::path &path )
 	mParams.addPersistentParam( "Left foot"     , strokes, &mStrokeLeftFoot     , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
 	mParams.addPersistentParam( "Right foot"    , strokes, &mStrokeRightFoot    , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
 
+	setStrokeSave();
+
 	mSourceBounds = app::getWindowBounds();
 	setBounds( mSourceBounds );
 }
@@ -477,6 +479,37 @@ bool UserManager::mouseUp( ci::app::MouseEvent event )
 	destroyUser( 0 );
 
 	return true;
+}
+
+void UserManager::keyUp( KeyEvent event )
+{
+	switch( event.getCode())
+	{
+	case KeyEvent::KEY_0 : if( mStrokeLeftHand      != 0 ) { mStrokeLeftHandSave      = mStrokeLeftHand;      mStrokeLeftHand      = 0; } else { mStrokeLeftHand      = mStrokeLeftHandSave;      } break;
+	case KeyEvent::KEY_1 : if( mStrokeLeftShoulder  != 0 ) { mStrokeLeftShoulderSave  = mStrokeLeftShoulder;  mStrokeLeftShoulder  = 0; } else { mStrokeLeftShoulder  = mStrokeLeftShoulderSave;  } break;
+	case KeyEvent::KEY_2 : if( mStrokeHead          != 0 ) { mStrokeHeadSave          = mStrokeHead;          mStrokeHead          = 0; } else { mStrokeHead          = mStrokeHeadSave;          } break;
+	case KeyEvent::KEY_3 : if( mStrokeRightHand     != 0 ) { mStrokeRightHandSave     = mStrokeRightHand;     mStrokeRightHand     = 0; } else { mStrokeRightHand     = mStrokeRightHandSave;     } break;
+	case KeyEvent::KEY_4 : if( mStrokeRightShoulder != 0 ) { mStrokeRightShoulderSave = mStrokeRightShoulder; mStrokeRightShoulder = 0; } else { mStrokeRightShoulder = mStrokeRightShoulderSave; } break;
+	case KeyEvent::KEY_5 : if( mStrokeTorso         != 0 ) { mStrokeTorsoSave         = mStrokeTorso;         mStrokeTorso         = 0; } else { mStrokeTorso         = mStrokeTorsoSave;         } break;
+	case KeyEvent::KEY_6 : if( mStrokeLeftKnee      != 0 ) { mStrokeLeftKneeSave      = mStrokeLeftKnee;      mStrokeLeftKnee      = 0; } else { mStrokeLeftKnee      = mStrokeLeftKneeSave;      } break;
+	case KeyEvent::KEY_7 : if( mStrokeRightKnee     != 0 ) { mStrokeRightKneeSave     = mStrokeRightKnee;     mStrokeRightKnee     = 0; } else { mStrokeRightKnee     = mStrokeRightKneeSave;     } break;
+	case KeyEvent::KEY_8 : if( mStrokeLeftFoot      != 0 ) { mStrokeLeftFootSave      = mStrokeLeftFoot;      mStrokeLeftFoot      = 0; } else { mStrokeLeftFoot      = mStrokeLeftFootSave;      } break;
+	case KeyEvent::KEY_9 : if( mStrokeRightFoot     != 0 ) { mStrokeRightFootSave     = mStrokeRightFoot;     mStrokeRightFoot     = 0; } else { mStrokeRightFoot     = mStrokeRightFootSave;     } break;
+	}
+}
+
+void UserManager::setStrokeSave()
+{
+	mStrokeLeftHandSave      = mStrokeLeftHand;
+	mStrokeLeftShoulderSave  = mStrokeLeftShoulder;
+	mStrokeHeadSave          = mStrokeHead;
+	mStrokeRightHandSave     = mStrokeRightHand;
+	mStrokeRightShoulderSave = mStrokeRightShoulder;
+	mStrokeTorsoSave         = mStrokeTorso;
+	mStrokeLeftKneeSave      = mStrokeLeftKnee;
+	mStrokeRightKneeSave     = mStrokeRightKnee;
+	mStrokeLeftFootSave      = mStrokeLeftFoot;
+	mStrokeRightFootSave     = mStrokeRightFoot;
 }
 
 } // namespace cinder

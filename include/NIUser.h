@@ -74,6 +74,7 @@ public:
 	bool mouseDown( ci::app::MouseEvent event );
 	bool mouseDrag( ci::app::MouseEvent event );
 	bool mouseUp( ci::app::MouseEvent event );
+	void keyUp( ci::app::KeyEvent event );
 
 	void setFbo( const ci::gl::Fbo &fbo )
 	{
@@ -88,6 +89,8 @@ private:
 
 	bool            getStrokeActive( XnSkeletonJoint jointId );
 	ci::gl::Texture getStrokeBrush ( XnSkeletonJoint jointId );
+	void            setStrokeSave();
+
 
 private:
 	mndl::ni::OpenNI      mNI;
@@ -126,6 +129,17 @@ private:
 	int                      mStrokeRightKnee;
 	int                      mStrokeLeftFoot;
 	int                      mStrokeRightFoot;
+
+	int                      mStrokeLeftHandSave;
+	int                      mStrokeLeftShoulderSave;
+	int                      mStrokeHeadSave;
+	int                      mStrokeRightHandSave;
+	int                      mStrokeRightShoulderSave;
+	int                      mStrokeTorsoSave;
+	int                      mStrokeLeftKneeSave;
+	int                      mStrokeRightKneeSave;
+	int                      mStrokeLeftFootSave;
+	int                      mStrokeRightFootSave;
 
 	std::thread              mThread;
 	std::mutex               mMutex;
