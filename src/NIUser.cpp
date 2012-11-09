@@ -209,6 +209,7 @@ void UserManager::setup( const fs::path &path )
 	mParams.addPersistentParam( "Right knee"    , strokes, &mStrokeRightKnee    , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
 	mParams.addPersistentParam( "Left foot"     , strokes, &mStrokeLeftFoot     , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
 	mParams.addPersistentParam( "Right foot"    , strokes, &mStrokeRightFoot    , strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	mParams.setOptions( "", "refresh=.3" );
 
 	setStrokeSave();
 
