@@ -174,22 +174,14 @@ void UserManager::setup( const fs::path &path )
 		it->second.unbind();
 	}
 
-#if USE_KINECT
-	if ( path.empty() )
-		mNI = OpenNI( OpenNI::Device() );
-	else
-		mNI = OpenNI( path );
-
-	mNI.setDepthAligned();
-	mNI.start();
-	mNIUserTracker = mNI.getUserTracker();
-	mNIUserTracker.addListener( this );
-#endif
+	mThread = thread( bind( &UserManager::openKinect, this, path ) );
 
 	mParams = params::PInterfaceGl( "Kinect", Vec2i( 250, 330 ) );
 	mParams.setPosition( Vec2i( 224, 16 ) );
 	mParams.addPersistentSizeAndPosition();
 	mParams.addText("Tracking");
+	mKinectProgress = "Connecting...\0\0\0\0\0\0\0\0\0";
+	mParams.addParam( "Kinect", &mKinectProgress, "", false );
 	mParams.addPersistentParam( "Skeleton smoothing" , &mSkeletonSmoothing, 0.9, "min=0 max=1 step=.05");
 	mParams.addPersistentParam( "Joint show"         , &mJointShow, true  );
 	mParams.addPersistentParam( "Line show"          , &mLineShow , true  );
@@ -222,6 +214,43 @@ void UserManager::setup( const fs::path &path )
 	setBounds( mSourceBounds );
 }
 
+void UserManager::openKinect( const fs::path &path )
+{
+	try
+	{
+		mndl::ni::OpenNI kinect;
+		if ( path.empty() )
+			kinect = OpenNI( OpenNI::Device() );
+		else
+			kinect = OpenNI( path );
+		{
+			boost::lock_guard< boost::mutex > lock( mMutex );
+			mNI = kinect;
+		}
+	}
+	catch ( ... )
+	{
+		if ( path.empty() )
+			mKinectProgress = "No device detected";
+		else
+			mKinectProgress = "Recording not found";
+		return;
+	}
+
+	if ( path.empty() )
+		mKinectProgress = "Connected";
+	else
+		mKinectProgress = "Recording loaded";
+
+	{
+		boost::lock_guard< boost::mutex > lock( mMutex );
+		mNI.setDepthAligned();
+		mNI.start();
+		mNIUserTracker = mNI.getUserTracker();
+		mNIUserTracker.addListener( this );
+	}
+}
+
 void UserManager::update()
 {
 	for( Users::const_iterator it = mUsers.begin(); it != mUsers.end(); ++it )
@@ -231,7 +260,12 @@ void UserManager::update()
 		user->update();
 	}
 
-#if USE_KINECT
+	{
+		boost::lock_guard< boost::mutex > lock( mMutex );
+		if ( !mNI )
+			return;
+	}
+
 	mNIUserTracker.setSmoothing( mSkeletonSmoothing );
 	if ( mNI.isMirrored() != mVideoMirrored )
 		mNI.setMirrored( mVideoMirrored );
@@ -257,7 +291,6 @@ void UserManager::update()
 			}
 		}
 	}
-#endif
 }
 
 void UserManager::drawStroke( const Calibrate &calibrate )
@@ -276,8 +309,8 @@ void UserManager::drawBody( const Calibrate &calibrate )
 {
 	gl::enableAlphaBlending();
 
-#if USE_KINECT
-	if( mNI.checkNewVideoFrame())
+
+	if( mNI && mNI.checkNewVideoFrame())
 	{
 		mNITexture = gl::Texture( mNI.getVideoImage() );
 	}
@@ -287,7 +320,6 @@ void UserManager::drawBody( const Calibrate &calibrate )
 		gl::color( Color::white() );
 		gl::draw( mNITexture, mSourceBounds );
 	}
-#endif
 
 	for( Users::iterator it = mUsers.begin(); it != mUsers.end(); ++it )
 	{

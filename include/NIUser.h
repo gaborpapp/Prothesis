@@ -7,15 +7,14 @@
 #include "cinder/Area.h"
 #include "cinder/Color.h"
 #include "cinder/Rect.h"
+#include "cinder/Thread.h"
 
 #include "CiNI.h"
 #include "PParams.h"
 #include "StrokeManager.h"
 #include "Calibrate.h"
 
-#define USE_KINECT        0
 #define USE_KINECT_RECORD 0
-
 
 namespace cinder {
 
@@ -108,6 +107,7 @@ private:
 
 	// params
 	ci::params::PInterfaceGl mParams;
+	std::string              mKinectProgress;
 	float                    mSkeletonSmoothing;
 	bool                     mJointShow;
 	bool                     mLineShow;
@@ -126,6 +126,10 @@ private:
 	int                      mStrokeRightKnee;
 	int                      mStrokeLeftFoot;
 	int                      mStrokeRightFoot;
+
+	std::thread              mThread;
+	std::mutex               mMutex;
+	void                     openKinect( const ci::fs::path &path );
 
 	Users                    mUsers;
 
