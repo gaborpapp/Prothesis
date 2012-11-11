@@ -41,6 +41,7 @@ class ProthesisApp : public AppBasic
 		void draw();
 
 		void showAllParams( bool show );
+		void makeScreenshot();
 
 	private:
 		UserManager   mUserManager;
@@ -310,6 +311,10 @@ void ProthesisApp::keyDown( KeyEvent event )
 			quit();
 			break;
 
+		case KeyEvent::KEY_RETURN:
+			makeScreenshot();
+			break;
+
 		default:
 			break;
 	}
@@ -428,6 +433,31 @@ void ProthesisApp::showAllParams( bool show )
 	}
 
 	TwDefine( "TW_HELP visible=false" );
+}
+
+void ProthesisApp::makeScreenshot()
+{
+	Surface snapshot( mFbo.getTexture( mFboPingPongId ));
+
+	fs::path screenshotFolder = getAppPath();
+#ifdef CINDER_MAC
+	screenshotFolder /= "..";
+#endif
+	screenshotFolder /= "screenshots/";
+	fs::create_directory( screenshotFolder );
+
+	string filename = "snap-" + timeStamp() + ".png";
+	fs::path pngPath( screenshotFolder / fs::path( filename ) );
+
+	try
+	{
+		if( ! pngPath.empty())
+			writeImage( pngPath, snapshot );
+	}
+	catch ( ... )
+	{
+		console() << "unable to save image file " << pngPath << endl;
+	}
 }
 
 CINDER_APP_BASIC( ProthesisApp, RendererGl() )
