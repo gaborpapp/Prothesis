@@ -28,6 +28,14 @@ void StrokeManager::setup( Vec2i size )
 	mParams.addPersistentParam( "Stroke min width", &mStrokeMinWidth, 100.0f, "min=    0    max=  500     step= 0.5"  );
 	mParams.addPersistentParam( "Stroke max width", &mStrokeMaxWidth, 160.0f, "min= -500    max=  500     step= 0.5"  );
 	mParams.addPersistentParam( "Velocity max"    , &mMaxVelocity   , 40.0f , "min=    1    max=  100"                );
+
+	std::vector< std::pair< std::string, boost::any > > vars;
+	vars.push_back( make_pair( "Stiffness", &mK ) );
+	vars.push_back( make_pair( "Damping", &mDamping ) );
+	vars.push_back( make_pair( "Stroke min width", &mStrokeMinWidth ) );
+	vars.push_back( make_pair( "Stroke max width", &mStrokeMaxWidth ) );
+	vars.push_back( make_pair( "Velocity max", &mMaxVelocity ) );
+	mParams.addPresets( vars );
 }
 
 void StrokeManager::update()

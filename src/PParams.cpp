@@ -20,6 +20,8 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <assert.h>
+
 #include "cinder/app/App.h"
 #include "PParams.h"
 #include "cinder/Filesystem.h"
@@ -77,6 +79,7 @@ void PInterfaceGl::storePreset()
 	if ( mPresetName == "" )
 		return;
 
+	// TODO: handle existing preset names
 	std::string enumString = " enum=' ";
 	mPresetLabels.push_back( mPresetName );
 	for ( size_t i = 0; i < mPresetLabels.size(); i++ )
@@ -89,11 +92,38 @@ void PInterfaceGl::storePreset()
 	enumString += "'";
 
 	setOptions( "Preset", enumString );
+
+	const std::string presetId = name2id( mPresetName );
+	XmlTree preset( "preset", "" );
+	preset.setAttribute( "name", presetId );
+	getXml().push_back( preset );
+	for ( std::vector< std::pair< std::string, boost::any > >::iterator it = mPresetVars.begin();
+			it != mPresetVars.end(); ++it )
+	{
+		const std::string id = name2id( mPresetName ) + "/" + name2id( it->first );
+		if ( it->second.type() == typeid( float * ) )
+		{
+			persistParam< float >( boost::any_cast< float * >( it->second ), id );
+		}
+		else
+		{
+			assert( false );
+		}
+	}
 }
 
-void PInterfaceGl::addPersistentPresets()
+void PInterfaceGl::addPresets( std::vector< std::pair< std::string, boost::any > > &vars )
 {
-	addPersistentParam( "Preset", mPresetLabels, &mPreset, 0, "group=Presets" );
+	mPresetLabels.clear();
+	for ( XmlTree::Iter pit = getXml().begin( "preset" );
+			pit != getXml().end(); ++pit )
+	{
+		mPresetLabels.push_back( pit->getAttributeValue< std::string >( "name" ) );
+	}
+
+	mPresetVars = vars;
+	mPreset = 0;
+	addParam( "Preset", mPresetLabels, &mPreset, "group=Presets" );
 	mPresetName = "";
 	addParam( "Name", &mPresetName, "group=Presets" );
 	addButton( "Store", std::bind( &PInterfaceGl::storePreset, this ) );

@@ -29,8 +29,10 @@
 #include <string>
 #include <vector>
 
+#include <boost/any.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+#include <boost/tokenizer.hpp>
 
 namespace cinder { namespace params {
 
@@ -98,10 +100,10 @@ class PInterfaceGl : public InterfaceGl {
 	void addPersistentParam(const std::string& name, std::vector<std::string> &enumNames, int* var, int defVal,
 			const std::string& optionsStr="", bool readOnly=false);
 
-	/** Add persistent presets to the bar. Presets containing all persistent
-	 * variables of the bar can be named, stored and restored.
+	/** Add presets to the bar. Presets containing all variables in
+	 *  \a vars variables of the bar can be named, stored and restored.
 	 */
-	void addPersistentPresets();
+	void addPresets( std::vector< std::pair< std::string, boost::any > > &vars );
 
 	/** Loads persistent params from file. At the moment this only works when
 	 * called at application start up, before creating persistent parameteres.
@@ -151,9 +153,22 @@ protected:
 	template<typename T>
 	void persistParam(T * var, const std::string& paramId)
 	{
-		if (!getXml().hasChild(paramId))
-			getXml().push_back(XmlTree(paramId,""));
-		getXml().getChild(paramId).setValue(*var);
+		typedef boost::tokenizer< boost::char_separator< char > > tokenizer;
+		boost::char_separator< char > sep( "/" );
+		tokenizer tok( paramId, sep );
+		// add parents if necessary
+		std::string parentId = "";
+		for ( tokenizer::iterator it = tok.begin(); it != tok.end(); ++it )
+		{
+			if ( !getXml().hasChild( parentId + "/" + *it ) )
+				if ( parentId == "" )
+					getXml().push_back( XmlTree( *it, "" ) );
+				else
+					getXml().getChild( parentId ).push_back( XmlTree( *it, "" ) );
+			parentId += "/" + *it;
+		}
+
+		getXml().getChild( paramId ).setValue( *var );
 	}
 
 	std::string colorToHex(const ci::ColorA &color);
@@ -173,6 +188,7 @@ protected:
 
 	// presets
 	int mPreset;
+	std::vector< std::pair< std::string, boost::any > > mPresetVars;
 	std::string mPresetName;
 	void storePreset();
 	std::vector< std::string > mPresetLabels;
