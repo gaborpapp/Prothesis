@@ -79,31 +79,42 @@ void PInterfaceGl::storePreset()
 	if ( mPresetName == "" )
 		return;
 
-	// TODO: handle existing preset names
-	std::string enumString = " enum=' ";
-	mPresetLabels.push_back( mPresetName );
-	for ( size_t i = 0; i < mPresetLabels.size(); i++ )
+	// add to preset names
+	if ( mPresetLabels.end() == std::find( mPresetLabels.begin(), mPresetLabels.end(), mPresetName ) )
 	{
-		enumString += boost::lexical_cast< std::string >( i ) + " {" +
-			mPresetLabels[ i ] + "}";
-		if ( i < mPresetLabels.size() - 1 )
-			enumString += ", ";
+		std::string enumString = " enum=' ";
+		mPresetLabels.push_back( mPresetName );
+		for ( size_t i = 0; i < mPresetLabels.size(); i++ )
+		{
+			enumString += boost::lexical_cast< std::string >( i ) + " {" +
+				mPresetLabels[ i ] + "}";
+			if ( i < mPresetLabels.size() - 1 )
+				enumString += ", ";
+		}
+		enumString += "'";
+
+		std::string barName = TwGetBarName( mBar.get() );
+		setOptions( barName + " Preset", enumString );
 	}
-	enumString += "'";
 
-	setOptions( "Preset", enumString );
-
-	const std::string presetId = name2id( mPresetName );
-	XmlTree preset( "preset", "" );
-	preset.setAttribute( "name", presetId );
-	getXml().push_back( preset );
+	const std::string presetId = "presets/" + name2id( mPresetName );
 	for ( std::vector< std::pair< std::string, boost::any > >::iterator it = mPresetVars.begin();
 			it != mPresetVars.end(); ++it )
 	{
-		const std::string id = name2id( mPresetName ) + "/" + name2id( it->first );
+		const std::string id = presetId + "/" + name2id( it->first );
+		if ( it->second.type() == typeid( int * ) )
+		{
+			persistParam< int >( boost::any_cast< int * >( it->second ), id );
+		}
+		else
 		if ( it->second.type() == typeid( float * ) )
 		{
 			persistParam< float >( boost::any_cast< float * >( it->second ), id );
+		}
+		else
+		if ( it->second.type() == typeid( bool * ) )
+		{
+			persistParam< bool >( boost::any_cast< bool * >( it->second ), id );
 		}
 		else
 		{
@@ -112,21 +123,64 @@ void PInterfaceGl::storePreset()
 	}
 }
 
+void PInterfaceGl::restorePreset()
+{
+	if ( mPreset >= mPresetLabels.size() )
+		return;
+
+	const std::string presetId = "presets/" + name2id( mPresetLabels[ mPreset ] );
+	for ( std::vector< std::pair< std::string, boost::any > >::iterator it = mPresetVars.begin();
+			it != mPresetVars.end(); ++it )
+	{
+		const std::string id = presetId + "/" + name2id( it->first );
+		if ( !getXml().hasChild( id ) )
+			continue;
+
+		if ( it->second.type() == typeid( int * ) )
+		{
+			*( boost::any_cast< int * >( it->second ) ) = getXml().getChild( id ).getValue< int >();
+		}
+		else
+		if ( it->second.type() == typeid( float * ) )
+		{
+			*( boost::any_cast< float * >( it->second ) ) = getXml().getChild( id ).getValue< float >();
+		}
+		else
+		if ( it->second.type() == typeid( bool * ) )
+		{
+			*( boost::any_cast< bool * >( it->second ) ) = getXml().getChild( id ).getValue< bool >();
+		}
+		else
+		{
+			assert( false );
+		}
+	}
+
+}
+
 void PInterfaceGl::addPresets( std::vector< std::pair< std::string, boost::any > > &vars )
 {
 	mPresetLabels.clear();
-	for ( XmlTree::Iter pit = getXml().begin( "preset" );
-			pit != getXml().end(); ++pit )
+	try
 	{
-		mPresetLabels.push_back( pit->getAttributeValue< std::string >( "name" ) );
+		XmlTree firstPreset = getXml().getChild( "presets" );
+		for ( XmlTree::Iter pit = firstPreset.begin(); pit != firstPreset.end(); ++pit )
+		{
+			mPresetLabels.push_back( pit->getTag() );
+		}
+	}
+	catch ( XmlTree::ExcChildNotFound )
+	{
 	}
 
+	std::string barName = TwGetBarName( mBar.get() );
 	mPresetVars = vars;
 	mPreset = 0;
-	addParam( "Preset", mPresetLabels, &mPreset, "group=Presets" );
+	addParam( barName + " Preset", mPresetLabels, &mPreset, "group=" + barName + "-Presets" );
 	mPresetName = "";
-	addParam( "Name", &mPresetName, "group=Presets" );
-	addButton( "Store", std::bind( &PInterfaceGl::storePreset, this ) );
+	addButton( barName + " Load", std::bind( &PInterfaceGl::restorePreset, this ), "group=" + barName + "-Presets" );
+	addParam( barName + " Save name", &mPresetName, "group=" + barName + "-Presets" );
+	addButton( barName + " Save", std::bind( &PInterfaceGl::storePreset, this ), "group=" + barName + "-Presets" );
 }
 
 void PInterfaceGl::load(const fs::path& fname)

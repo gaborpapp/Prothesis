@@ -100,8 +100,8 @@ class PInterfaceGl : public InterfaceGl {
 	void addPersistentParam(const std::string& name, std::vector<std::string> &enumNames, int* var, int defVal,
 			const std::string& optionsStr="", bool readOnly=false);
 
-	/** Add presets to the bar. Presets containing all variables in
-	 *  \a vars variables of the bar can be named, stored and restored.
+	/** Adds presets to the bar. Presets containing all variables in
+	 *  \a vars are stored and restored with an assigned label.
 	 */
 	void addPresets( std::vector< std::pair< std::string, boost::any > > &vars );
 
@@ -187,11 +187,12 @@ protected:
 	static std::string name2id( const std::string& name );
 
 	// presets
-	int mPreset;
-	std::vector< std::pair< std::string, boost::any > > mPresetVars;
-	std::string mPresetName;
+	int mPreset; // active preset
+	std::vector< std::pair< std::string, boost::any > > mPresetVars; // variables in preset
+	std::string mPresetName; // label for storing preset
+	std::vector< std::string > mPresetLabels; // all preset labels
 	void storePreset();
-	std::vector< std::string > mPresetLabels;
+	void restorePreset();
 };
 
 } } // namespace cinder::params

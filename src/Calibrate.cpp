@@ -1,9 +1,12 @@
+#include <vector>
+
 #include "cinder/gl/Texture.h"
 #include "Calibrate.h"
 #include "Utils.h"
 
 using namespace ci;
 using namespace ci::app;
+using namespace std;
 
 const float Calibrate::MIN_TRANSLATE  = -1000.0f;
 const float Calibrate::MAX_TRANSLATE  =  1000.0f;
@@ -38,6 +41,16 @@ void Calibrate::setup()
 	mParams.addText( "Scale", "help='Right mouse button'" );
 	mParams.addPersistentParam( "Scale X"     , &mScaleX        , 1.0f, getMinMaxStepString<float>( MIN_SCALE    , MAX_SCALE    , STEP_SCALE     ));
 	mParams.addPersistentParam( "Scale Y"     , &mScaleY        , 1.0f, getMinMaxStepString<float>( MIN_SCALE    , MAX_SCALE    , STEP_SCALE     ));
+
+	std::vector< std::pair< std::string, boost::any > > vars;
+	vars.push_back( make_pair( "Translate X", &mTranslateX ) );
+	vars.push_back( make_pair( "Translate Y", &mTranslateY ) );
+	vars.push_back( make_pair( "Scale X", &mScaleX ) );
+	vars.push_back( make_pair( "Scale Y", &mScaleY ) );
+	mParams.addSeparator();
+	mParams.addPresets( vars );
+	mParams.addSeparator();
+
 	mParams.addText( "Cover", "help='Middle mouse button'" );
 	mParams.addPersistentParam( "Cover Left"  , &mCoverLeft     , 0.f ,
 			getMinMaxStepString<float>( MIN_COVER, MAX_COVER, STEP_COVER ));

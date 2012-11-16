@@ -1,4 +1,5 @@
 #include <boost/foreach.hpp>
+#include <boost/assign/std/vector.hpp>
 
 #include "cinder/app/App.h"
 #include "cinder/ip/grayscale.h"
@@ -199,27 +200,25 @@ void UserManager::setup( const fs::path &path )
 	int strokePos  = 1;
 	int strokeSize = mBrushes.size();
 
-	mParams.addPersistentParam( "Left hand active"     ,          &mStrokeActive[ LEFT_HAND      ], true                                    );
-	mParams.addPersistentParam( "Left hand"            , strokes, &mStrokeSelect[ LEFT_HAND      ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Left shoulder active" ,          &mStrokeActive[ LEFT_SHOULDER  ], true                                    );
-	mParams.addPersistentParam( "Left shoulder"        , strokes, &mStrokeSelect[ LEFT_SHOULDER  ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Head active"          ,          &mStrokeActive[ HEAD           ], true                                    );
-	mParams.addPersistentParam( "Head"                 , strokes, &mStrokeSelect[ HEAD           ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Right hand active"    ,          &mStrokeActive[ RIGHT_HAND     ], true                                    );
-	mParams.addPersistentParam( "Right hand"           , strokes, &mStrokeSelect[ RIGHT_HAND     ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Right shoulder active",          &mStrokeActive[ RIGHT_SHOULDER ], true                                    );
-	mParams.addPersistentParam( "Right shoulder"       , strokes, &mStrokeSelect[ RIGHT_SHOULDER ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Torso active"         ,          &mStrokeActive[ TORSO          ], true                                    );
-	mParams.addPersistentParam( "Torso"                , strokes, &mStrokeSelect[ TORSO          ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Left knee active"     ,          &mStrokeActive[ LEFT_KNEE      ], true                                    );
-	mParams.addPersistentParam( "Left knee"            , strokes, &mStrokeSelect[ LEFT_KNEE      ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Right knee active"    ,          &mStrokeActive[ RIGHT_KNEE     ], true                                    );
-	mParams.addPersistentParam( "Right knee"           , strokes, &mStrokeSelect[ RIGHT_KNEE     ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Left foot active"     ,          &mStrokeActive[ LEFT_FOOT      ], true                                    );
-	mParams.addPersistentParam( "Left foot"            , strokes, &mStrokeSelect[ LEFT_FOOT      ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
-	mParams.addPersistentParam( "Right foot active"    ,          &mStrokeActive[ RIGHT_FOOT     ], true                                    );
-	mParams.addPersistentParam( "Right foot"           , strokes, &mStrokeSelect[ RIGHT_FOOT     ], strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+	using namespace boost::assign;
+	vector< string > jointNames;
+	jointNames += "Left hand", "Left shoulder", "Head", "Right hand", "Right shoulder",
+		"Torso", "Left knee", "Right knee", "Left foot", "Right foot";
+	std::vector< std::pair< std::string, boost::any > > vars;
+	for( size_t i = 0; i < jointNames.size(); i++ )
+	{
+		mParams.addPersistentParam( jointNames[ i ] + " active", &mStrokeActive[ i ], true );
+		mParams.addPersistentParam( jointNames[ i ], strokes, &mStrokeSelect[ i ],
+				strokePos <= strokeSize ? strokePos : 0 ); ++strokePos;
+		vars.push_back( make_pair( jointNames[ i ] + " active", &mStrokeActive[ i ] ) );
+		vars.push_back( make_pair( jointNames[ i ], &mStrokeSelect[ i ] ) );
+	}
+	vars.push_back( make_pair( "Skeleton smoothing", &mSkeletonSmoothing ) );
+	mParams.addSeparator();
+	mParams.addPresets( vars );
+
 	mParams.setOptions( "", "refresh=.3" );
+
 
 	mSourceBounds = app::getWindowBounds();
 	setBounds( mSourceBounds );

@@ -133,9 +133,9 @@ void ProthesisApp::setup()
 		mUserManager.setup( recordingPath );
 #endif /* USE_KINECT_RECORD */
 	}
-	catch( ... ) // TODO: catching std::exception or ci::Exception does not work
+	catch ( const exception &exc )
 	{
-		console() << "Could not open Kinect" << endl;
+		console() << exc.what() << endl;
 		quit();
 	}
 
