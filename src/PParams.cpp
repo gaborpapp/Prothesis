@@ -72,6 +72,33 @@ std::string PInterfaceGl::name2id( const std::string& name ) {
 	return id;
 }
 
+void PInterfaceGl::storePreset()
+{
+	if ( mPresetName == "" )
+		return;
+
+	std::string enumString = " enum=' ";
+	mPresetLabels.push_back( mPresetName );
+	for ( size_t i = 0; i < mPresetLabels.size(); i++ )
+	{
+		enumString += boost::lexical_cast< std::string >( i ) + " {" +
+			mPresetLabels[ i ] + "}";
+		if ( i < mPresetLabels.size() - 1 )
+			enumString += ", ";
+	}
+	enumString += "'";
+
+	setOptions( "Preset", enumString );
+}
+
+void PInterfaceGl::addPersistentPresets()
+{
+	addPersistentParam( "Preset", mPresetLabels, &mPreset, 0, "group=Presets" );
+	mPresetName = "";
+	addParam( "Name", &mPresetName, "group=Presets" );
+	addButton( "Store", std::bind( &PInterfaceGl::storePreset, this ) );
+}
+
 void PInterfaceGl::load(const fs::path& fname)
 {
 	filename() = fname;

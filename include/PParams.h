@@ -25,8 +25,9 @@
 #include "cinder/params/Params.h"
 #include "cinder/Xml.h"
 
-#include <vector>
+#include <map>
 #include <string>
+#include <vector>
 
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
@@ -97,6 +98,11 @@ class PInterfaceGl : public InterfaceGl {
 	void addPersistentParam(const std::string& name, std::vector<std::string> &enumNames, int* var, int defVal,
 			const std::string& optionsStr="", bool readOnly=false);
 
+	/** Add persistent presets to the bar. Presets containing all persistent
+	 * variables of the bar can be named, stored and restored.
+	 */
+	void addPersistentPresets();
+
 	/** Loads persistent params from file. At the moment this only works when
 	 * called at application start up, before creating persistent parameteres.
 	 * Will remember the filename for saving later.
@@ -162,9 +168,14 @@ protected:
 		return root().getChild(m_id);
 	}
 
-
 	// convert "some title" to SomeTitle so it can be used as XML tag
 	static std::string name2id( const std::string& name );
+
+	// presets
+	int mPreset;
+	std::string mPresetName;
+	void storePreset();
+	std::vector< std::string > mPresetLabels;
 };
 
 } } // namespace cinder::params
