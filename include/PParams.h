@@ -193,6 +193,21 @@ protected:
 	std::vector< std::string > mPresetLabels; // all preset labels
 	void storePreset();
 	void restorePreset();
+	void removePreset();
+
+	struct FindPresetNode
+	{
+		public:
+			FindPresetNode( const std::string &tag ) : mTag( tag ) {}
+
+			bool operator()( const ci::XmlTree &node ) const
+			{
+				return node.getTag() == mTag;
+			}
+
+		private:
+			std::string mTag;
+	};
 };
 
 } } // namespace cinder::params

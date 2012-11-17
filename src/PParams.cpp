@@ -155,7 +155,39 @@ void PInterfaceGl::restorePreset()
 			assert( false );
 		}
 	}
+}
 
+void PInterfaceGl::removePreset()
+{
+	if ( mPreset >= mPresetLabels.size() )
+		return;
+
+	const std::string presetId = "presets/" + name2id( mPresetLabels[ mPreset ] );
+	if ( !getXml().hasChild( presetId ) )
+		return;
+
+	XmlTree &node = getXml().getChild( presetId );
+	// remove node from parent's children container
+	boost::container::list< XmlTree > &children = node.getParent().getChildren();
+	children.remove_if( FindPresetNode( node.getTag() ) );
+
+	// remove from optionmenu
+	std::vector< std::string >::iterator it = mPresetLabels.begin() + mPreset;
+	mPresetLabels.erase( it );
+	std::string enumString = " enum=' ";
+	for ( size_t i = 0; i < mPresetLabels.size(); i++ )
+	{
+		enumString += boost::lexical_cast< std::string >( i ) + " {" +
+			mPresetLabels[ i ] + "}, ";
+	}
+	// FIXME: an extra blank entry is required otherwise the deleted label is still shown
+	enumString += boost::lexical_cast< std::string >( mPresetLabels.size() ) + "{ }";
+	enumString += "'";
+
+	std::string barName = TwGetBarName( mBar.get() );
+	setOptions( barName + " Preset", enumString );
+	if ( mPreset >= mPresetLabels.size() )
+		mPreset = 0;
 }
 
 void PInterfaceGl::addPresets( std::vector< std::pair< std::string, boost::any > > &vars )
@@ -181,6 +213,7 @@ void PInterfaceGl::addPresets( std::vector< std::pair< std::string, boost::any >
 	addButton( barName + " Load", std::bind( &PInterfaceGl::restorePreset, this ), "group=" + barName + "-Presets" );
 	addParam( barName + " Save name", &mPresetName, "group=" + barName + "-Presets" );
 	addButton( barName + " Save", std::bind( &PInterfaceGl::storePreset, this ), "group=" + barName + "-Presets" );
+	addButton( barName + " Delete", std::bind( &PInterfaceGl::removePreset, this ), "group=" + barName + "-Presets" );
 }
 
 void PInterfaceGl::load(const fs::path& fname)
