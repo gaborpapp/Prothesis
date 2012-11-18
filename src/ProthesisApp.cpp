@@ -1,4 +1,5 @@
 #include <boost/logic/tribool.hpp>
+#include <boost/assign/std/vector.hpp>
 
 #include "cinder/app/AppBasic.h"
 #include "cinder/Cinder.h"
@@ -17,6 +18,7 @@
 using namespace ci;
 using namespace ci::app;
 using namespace std;
+using namespace boost::assign;
 
 class ProthesisApp : public AppBasic
 {
@@ -60,10 +62,17 @@ class ProthesisApp : public AppBasic
 			MA_CALIBRATE = 2,
 		};
 
+		enum BlendModes
+		{
+			BLENDMODE_DARKEN = 0,
+			BLENDMODE_ERASE
+		};
+
 		// params
 		params::PInterfaceGl mParams;
 		float                mFps;
 		float                mFadeOutStrength;
+		int                  mBlendmode;
 		MouseAction          mMouseAction;
 
 		// multidisplay
@@ -116,12 +125,18 @@ void ProthesisApp::setup()
 	mParams.addSeparator();
 	mParams.addPersistentParam( "Fade strength", &mFadeOutStrength, 0.995f, "min=0. max=1. step=0.001" );
 
+	vector< string > blendNames;
+	blendNames += "Darken", "Erase";
+	mBlendmode = BLENDMODE_DARKEN;
+	mParams.addParam( "Blendmode", blendNames, &mBlendmode );
+
 	vector< string > mouseActions;
 	mouseActions.push_back( "None"      );
 	mouseActions.push_back( "Stroke"    );
 	mouseActions.push_back( "Calibrate" );
 	mMouseAction = MA_NONE;
 	mParams.addParam( "Mouse action", mouseActions, (int*)&mMouseAction );
+	mParams.setOptions( "", "refresh=.5" );
 
 	try
 	{
@@ -302,6 +317,14 @@ void ProthesisApp::keyDown( KeyEvent event )
 			}
 			break;
 
+		case KeyEvent::KEY_e:
+			mBlendmode = BLENDMODE_ERASE;
+			break;
+
+		case KeyEvent::KEY_d:
+			mBlendmode = BLENDMODE_DARKEN;
+			break;
+
 		case KeyEvent::KEY_SPACE:
 			mUserManager.clearStrokes();
 			clearFbo();
@@ -378,7 +401,10 @@ void ProthesisApp::draw()
 	mFbo.bindFramebuffer();
 	// draw strokes to attachment 0
 	glDrawBuffer( GL_COLOR_ATTACHMENT0_EXT );
-	gl::clear( ColorA::white() );
+	if ( mBlendmode == BLENDMODE_DARKEN )
+		gl::clear( ColorA::white() );
+	else // BLENDMODE_ERASE
+		gl::clear( ColorA( 0, 0, 0, 0 ) );
 
 	gl::setMatricesWindow( mFbo.getSize(), false );
 	gl::setViewport( mFbo.getBounds() );
@@ -391,6 +417,7 @@ void ProthesisApp::draw()
 	int otherId = ( mFboPingPongId == 1 ) ? 2 : 1;
 	mBlendShader.bind();
 	mBlendShader.uniform( "fadeout", mFadeOutStrength );
+	mBlendShader.uniform( "mode", mBlendmode );
 	mFbo.getTexture( otherId ).bind( 0 ); // bind previous frame to sampler 0
 	mFbo.getTexture( 0 ).bind( 1 ); // bind strokes to sampler 1
 	gl::drawSolidRect( mFbo.getBounds() );

@@ -2,6 +2,8 @@ uniform sampler2D background;
 uniform sampler2D brush;
 uniform float fadeout;
 
+uniform int mode;
+
 void main()
 {
 	vec2 uv = gl_TexCoord[ 0 ].st;
@@ -13,8 +15,12 @@ void main()
 	c *= c.a;
 	bc *= bc.a;
 
-	// darken
-	vec3 blend = min( bc.rgb, c.rgb );
+	vec3 blend;
+	if ( mode == 0 )
+		blend = min( bc.rgb, c.rgb ); // darken
+	else
+		blend = max( bc.rgb, c.aaa ); // erase
+
 	// fade out
 	vec3 outc = mix( vec3( 1, 1, 1 ), blend, fadeout );
 	gl_FragColor = vec4( outc, 1. );
