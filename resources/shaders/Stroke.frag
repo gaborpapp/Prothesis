@@ -11,15 +11,15 @@ void main()
 	vec4 bc = texture2D( background, uv );
 	vec4 c = texture2D( brush, uv );
 
-	// premultiply alpha
-	c *= c.a;
-	bc *= bc.a;
+	// premultiply color
+	c.rgb *= c.a;
+	bc.rgb *= bc.a;
 
 	vec3 blend;
 	if ( mode == 0 )
 		blend = min( bc.rgb, c.rgb ); // darken
 	else
-		blend = max( bc.rgb, c.aaa ); // erase
+		blend = max( bc.rgb, vec3( 1, 1, 1 ) * c.a ); // erase
 
 	// fade out
 	vec3 outc = mix( vec3( 1, 1, 1 ), blend, fadeout );
