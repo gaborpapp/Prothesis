@@ -23,12 +23,13 @@ void StrokeManager::setup( Vec2i size )
 	mParams.setPosition( Vec2i( 16, 176 ) );
 	mParams.addPersistentSizeAndPosition();
 
-	mParams.addPersistentParam( "Stiffness"       , &mK             , 0.06f , "min=    0.01 max=    0.999 step= 0.01" );
-	mParams.addPersistentParam( "Damping"         , &mDamping       , 0.7f  , "min=    0.01 max=    0.999 step= 0.01" );
+	mParams.addPersistentParam( "Stiffness"       , &mK             , 0.06f , "min=    0.01 max=    0.2   step= 0.01" );
+	mParams.addPersistentParam( "Damping"         , &mDamping       , 0.7f  , "min=    0.25 max=    0.999 step= 0.02" );
 	mParams.addPersistentParam( "Stroke min width", &mStrokeMinWidth, 100.0f, "min=    0    max=  500     step= 0.5"  );
 	mParams.addPersistentParam( "Stroke max width", &mStrokeMaxWidth, 160.0f, "min= -500    max=  500     step= 0.5"  );
 	mParams.addPersistentParam( "Velocity max"    , &mMaxVelocity   , 40.0f , "min=    1    max=  100"                );
 
+	/*
 	std::vector< std::pair< std::string, boost::any > > vars;
 	vars.push_back( make_pair( "Stiffness", &mK ) );
 	vars.push_back( make_pair( "Damping", &mDamping ) );
@@ -37,6 +38,7 @@ void StrokeManager::setup( Vec2i size )
 	vars.push_back( make_pair( "Velocity max", &mMaxVelocity ) );
 	mParams.addSeparator();
 	mParams.addPresets( vars );
+	*/
 }
 
 void StrokeManager::update()
