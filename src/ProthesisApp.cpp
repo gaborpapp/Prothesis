@@ -30,8 +30,6 @@ class ProthesisApp : public AppBasic
 		void setupDisplays();
 		void shutdown();
 
-		void resize(ResizeEvent event);
-
 		void keyDown(KeyEvent event);
 		void keyUp(KeyEvent event );
 
@@ -198,13 +196,13 @@ void ProthesisApp::setupDisplays()
 	for ( vector< DisplayRef >::const_iterator it = displays.begin();
 			it != displays.end(); ++it )
 	{
-		console() << (*it)->getArea() << " " <<
+		console() << (*it)->getBounds() << " " <<
 			(*it)->getWidth() << "x" << (*it)->getHeight() << endl;
 	}
 
 	if ( displays.size() == 1 )
 	{
-		mOutputAreaSpanning = displays[ 0 ]->getArea();
+		mOutputAreaSpanning = displays[ 0 ]->getBounds();
 		mOutputAreaWindowed = Area( 0, 0,
 				mOutputAreaSpanning.getWidth() / 2,
 				mOutputAreaSpanning.getHeight() / 2 );
@@ -213,12 +211,12 @@ void ProthesisApp::setupDisplays()
 	}
 	else
 	{
-		Area primaryArea = displays[ 0 ]->getArea();
-		Area secondaryArea = displays[ 1 ]->getArea();
+		//Area primaryArea = displays[ 0 ]->getBounds();
+		Area secondaryArea = displays[ 1 ]->getBounds();
 		mMultiSize = Vec2i( displays[ 0 ]->getWidth() + displays[ 1 ]->getWidth(),
 							math< int >::max( displays[ 0 ]->getHeight(),
 											  displays[ 1 ]->getHeight() ) );
-		int xS = displays[ 1 ]->getArea().getX1();
+		int xS = displays[ 1 ]->getBounds().getX1();
 		// secondary display on the left
 		if ( xS < 0 )
 		{
@@ -247,10 +245,6 @@ void ProthesisApp::shutdown()
 	params::PInterfaceGl::save();
 }
 
-void ProthesisApp::resize( ResizeEvent event )
-{
-}
-
 void ProthesisApp::setSpanningWindow( bool spanning )
 {
 	static Vec2i lastWindowPos = getWindowPos();
@@ -261,19 +255,19 @@ void ProthesisApp::setSpanningWindow( bool spanning )
 	if ( spanning )
 	{
 		lastWindowPos = getWindowPos();
-		setBorderless();
+		getWindow()->setBorderless();
 		setWindowSize( mMultiSize.x, mMultiSize.y );
 		setWindowPos( mFullScreenPos );
-		setAlwaysOnTop();
+		getWindow()->setAlwaysOnTop();
 		mSpanning = true;
 		mOutputArea = mOutputAreaSpanning;
 	}
 	else
 	{
-		setBorderless( false );
+		getWindow()->setBorderless( false );
 		setWindowSize( mMultiSize.x / 2, mMultiSize.y / 2 );
 		setWindowPos( lastWindowPos );
-		setAlwaysOnTop( false );
+		getWindow()->setAlwaysOnTop( false );
 		mSpanning = false;
 		mOutputArea = mOutputAreaWindowed;
 	}

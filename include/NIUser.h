@@ -56,6 +56,7 @@ typedef std::vector< std::pair< std::string, ci::gl::Texture > > Brushes;
 typedef std::vector< XnSkeletonJoint >                           Joints;
 public:
 	UserManager();
+	~UserManager();
 
 	void setup( const ci::fs::path &path = "" );
 	void update();

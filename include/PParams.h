@@ -161,10 +161,16 @@ protected:
 		for ( tokenizer::iterator it = tok.begin(); it != tok.end(); ++it )
 		{
 			if ( !getXml().hasChild( parentId + "/" + *it ) )
+			{
 				if ( parentId == "" )
+				{
 					getXml().push_back( XmlTree( *it, "" ) );
+				}
 				else
+				{
 					getXml().getChild( parentId ).push_back( XmlTree( *it, "" ) );
+				}
+			}
 			parentId += "/" + *it;
 		}
 
@@ -200,9 +206,9 @@ protected:
 		public:
 			FindPresetNode( const std::string &tag ) : mTag( tag ) {}
 
-			bool operator()( const ci::XmlTree &node ) const
+			bool operator()( std::unique_ptr< ci::XmlTree > &node ) const
 			{
-				return node.getTag() == mTag;
+				return node->getTag() == mTag;
 			}
 
 		private:

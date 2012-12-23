@@ -52,7 +52,7 @@ void StrokeManager::update()
 		stroke->setStrokeMinWidth( mStrokeMinWidth );
 		stroke->setStrokeMaxWidth( mStrokeMaxWidth );
 		stroke->setMaxVelocity   ( mMaxVelocity    );
-		stroke->resize( ResizeEvent( mSize ));
+		stroke->resize( mSize );
 		stroke->update();
 	}
 }

@@ -51,7 +51,8 @@ vector< pair< string, gl::Texture > > loadTextures( const fs::path &relativeDir 
 		if( fs::is_regular_file(*it) && ( it->path().extension().string() == ".png" ))
 		{
 			gl::Texture t = loadImage( app::loadAsset( relativeDir / it->path().filename()));
-			textures.push_back( make_pair< string, gl::Texture >( it->path().filename().string(), t ));
+			pair< string, gl::Texture > p( string( it->path().filename().string() ), t );
+			textures.push_back( p );
 		}
 	}
 

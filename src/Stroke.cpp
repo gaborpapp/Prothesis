@@ -19,9 +19,9 @@ Stroke::Stroke()
 {
 }
 
-void Stroke::resize( ResizeEvent event )
+void Stroke::resize( Vec2i size )
 {
-	mWindowSize = event.getSize();
+	mWindowSize = size;
 }
 
 void Stroke::addPos( Vec2f pos )

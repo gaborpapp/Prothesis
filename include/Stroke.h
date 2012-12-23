@@ -13,7 +13,7 @@ class Stroke
 	public:
 		Stroke();
 
-		void resize( ci::app::ResizeEvent event );
+		void resize( ci::Vec2i size );
 
 		void addPos( ci::Vec2f point );
 		void update();

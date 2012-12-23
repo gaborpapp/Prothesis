@@ -168,7 +168,7 @@ void PInterfaceGl::removePreset()
 
 	XmlTree &node = getXml().getChild( presetId );
 	// remove node from parent's children container
-	boost::container::list< XmlTree > &children = node.getParent().getChildren();
+	XmlTree::Container &children = node.getParent().getChildren();
 	children.remove_if( FindPresetNode( node.getTag() ) );
 
 	// remove from optionmenu
