@@ -36,16 +36,19 @@
     <ClCompile Include="..\src\Stroke.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNI.cpp">
-      <Filter>blocks\Cinder-NI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNIUserTracker.cpp">
-      <Filter>blocks\Cinder-NI</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\StrokeManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Calibrate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-NI\src\CiNI.cpp">
+      <Filter>blocks\Cinder-NI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-NI\src\CiNIUserTracker.cpp">
+      <Filter>blocks\Cinder-NI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kaleidoscope.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,19 +65,22 @@
     <ClInclude Include="..\include\Stroke.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNI.h">
-      <Filter>blocks\Cinder-NI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNIBufferManager.h">
-      <Filter>blocks\Cinder-NI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Program Files (x86)\cinder_0.8.4\blocks\Cinder-NI\src\CiNIUserTracker.h">
-      <Filter>blocks\Cinder-NI</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\StrokeManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Calibrate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-NI\src\CiNI.h">
+      <Filter>blocks\Cinder-NI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-NI\src\CiNIBufferManager.h">
+      <Filter>blocks\Cinder-NI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-NI\src\CiNIUserTracker.h">
+      <Filter>blocks\Cinder-NI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Kaleidoscope.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
