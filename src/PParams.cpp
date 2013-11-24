@@ -20,11 +20,10 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <assert.h>
-
 #include "cinder/app/App.h"
 #include "PParams.h"
 #include "cinder/Filesystem.h"
+#include "cinder/Utilities.h"
 
 #include "AntTweakBar.h"
 
@@ -34,10 +33,46 @@
 #include <ctype.h>
 
 using namespace std;
+using namespace ci;
 
-namespace cinder { namespace params {
+namespace mndl { namespace params {
 
-std::string PInterfaceGl::name2id( const std::string& name ) {
+PInterfaceGl::PInterfaceGl( const std::string &title, const ci::Vec2i &size, const ci::Vec2i &pos /* = Vec2i::zero() */,
+							const ci::ColorA colorA /* = ColorA( 0.3f, 0.3f, 0.3f, 0.4f ) */ ) :
+	ci::params::InterfaceGl( title, size, colorA ), m_id( name2id( title ) )
+{
+	TwSetCurrentWindow( mTwWindowId );
+	if ( pos != ci::Vec2i::zero() )
+		TwSetParam( mBar.get(), NULL, "position", TW_PARAM_INT32, 2, pos.ptr() );
+}
+
+PInterfaceGl::PInterfaceGl( ci::app::WindowRef window,
+							const std::string &title, const ci::Vec2i &size, const ci::Vec2i &pos /* = Vec2i::zero() */,
+							const ci::ColorA colorA /* = ColorA( 0.3f, 0.3f, 0.3f, 0.4f ) */ ) :
+	ci::params::InterfaceGl( window, title, size, colorA ), m_id( name2id( title ) )
+{
+	TwSetCurrentWindow( mTwWindowId );
+	if ( pos != ci::Vec2i::zero() )
+		TwSetParam( mBar.get(), NULL, "position", TW_PARAM_INT32, 2, pos.ptr() );
+}
+
+PInterfaceGlRef PInterfaceGl::create( const std::string &title, const Vec2i &size,
+									  const ci::Vec2i &pos /* = ci::Vec2i::zero() */,
+									  const ColorA &color /* = ColorA( 0.3f, 0.3f, 0.3f, 0.4f ) */ )
+{
+	return PInterfaceGlRef( new PInterfaceGl( title, size, pos, color ) );
+}
+
+PInterfaceGlRef PInterfaceGl::create( ci::app::WindowRef window,
+									  const std::string &title, const Vec2i &size,
+									  const ci::Vec2i &pos /* = ci::Vec2i::zero() */,
+									  const ColorA &color /* = ColorA( 0.3f, 0.3f, 0.3f, 0.4f ) */ )
+{
+	return PInterfaceGlRef( new PInterfaceGl( window, title, size, pos, color ) );
+}
+
+std::string PInterfaceGl::name2id( const std::string& name )
+{
 	std::string id = "";
 	enum State { START, APPEND, UPCASE };
 	State state(START);
@@ -78,6 +113,8 @@ void PInterfaceGl::storePreset()
 {
 	if ( mPresetName == "" )
 		return;
+
+	TwSetCurrentWindow( mTwWindowId );
 
 	// add to preset names
 	if ( mPresetLabels.end() == std::find( mPresetLabels.begin(), mPresetLabels.end(), mPresetName ) )
@@ -168,8 +205,16 @@ void PInterfaceGl::removePreset()
 
 	XmlTree &node = getXml().getChild( presetId );
 	// remove node from parent's children container
-	boost::container::list< XmlTree > &children = node.getParent().getChildren();
-	children.remove_if( FindPresetNode( node.getTag() ) );
+	XmlTree::Container &children = node.getParent().getChildren();
+	// TODO: remove_if does not work with the new XmlTree::Container
+	std::string nodeTag = node.getTag();
+	for ( XmlTree::Container::iterator chIt = children.begin(); chIt != children.end(); )
+	{
+		if ( (*chIt)->getTag() == nodeTag )
+			chIt = children.erase( chIt );
+		else
+			chIt++;
+	}
 
 	// remove from optionmenu
 	std::vector< std::string >::iterator it = mPresetLabels.begin() + mPreset;
@@ -184,6 +229,7 @@ void PInterfaceGl::removePreset()
 	enumString += boost::lexical_cast< std::string >( mPresetLabels.size() ) + "{ }";
 	enumString += "'";
 
+	TwSetCurrentWindow( mTwWindowId );
 	std::string barName = TwGetBarName( mBar.get() );
 	setOptions( barName + " Preset", enumString );
 	if ( mPreset >= mPresetLabels.size() )
@@ -205,6 +251,7 @@ void PInterfaceGl::addPresets( std::vector< std::pair< std::string, boost::any >
 	{
 	}
 
+	TwSetCurrentWindow( mTwWindowId );
 	std::string barName = TwGetBarName( mBar.get() );
 	mPresetVars = vars;
 	mPreset = 0;
@@ -216,27 +263,47 @@ void PInterfaceGl::addPresets( std::vector< std::pair< std::string, boost::any >
 	addButton( barName + " Delete", std::bind( &PInterfaceGl::removePreset, this ), "group=" + barName + "-Presets" );
 }
 
-void PInterfaceGl::load(const fs::path& fname)
+void PInterfaceGl::load( const std::string &fname )
 {
-	filename() = fname;
-	if (fs::exists( fname )) {
-		root() = XmlTree( loadFile(fname) );
+	fs::path paramsXml( app::getAssetPath( fname ));
+	if ( paramsXml.empty() )
+	{
+#if defined( CINDER_MAC )
+		fs::path assetPath( app::App::getResourcePath() / "assets" );
+#else
+		fs::path assetPath( app::App::get()->getAppPath() / "assets" );
+#endif
+		createDirectories( assetPath );
+		paramsXml = assetPath / "params.xml" ;
+	}
+
+	filename() = paramsXml;
+	if ( fs::exists( paramsXml ) ) {
+		root() = XmlTree( loadFile( paramsXml ) );
 	}
 }
 
-void PInterfaceGl::save() {
-	BOOST_FOREACH(boost::function<void()> f, persistCallbacks())
-		f();
-	root().write( writeFile(filename()) );
+void PInterfaceGl::load( const ci::fs::path &fpath )
+{
+	filename() = fpath;
+	if ( fs::exists( fpath ) ) {
+		root() = XmlTree( loadFile( fpath ) );
+	}
 }
 
-void PInterfaceGl::setPosition(const ci::Vec2i &pos)
+void PInterfaceGl::save()
 {
-	TwSetParam( mBar.get(), NULL, "position", TW_PARAM_INT32, 2, pos.ptr() );
+	BOOST_FOREACH(boost::function<void()> f, persistCallbacks())
+		f();
+	DataTargetPathRef outpath = writeFile( filename() );
+	if ( outpath->getStream() != OStreamRef() )
+		root().write( writeFile(filename()) );
 }
 
 void PInterfaceGl::addPersistentSizeAndPosition()
 {
+	TwSetCurrentWindow( mTwWindowId );
+
 	int size[2];
 	TwGetParam( mBar.get(), NULL, "size", TW_PARAM_INT32, 2, size );
 
@@ -293,6 +360,8 @@ void PInterfaceGl::addPersistentSizeAndPosition()
 
 void PInterfaceGl::persistSizeAndPosition()
 {
+	TwSetCurrentWindow( mTwWindowId );
+
 	int size[2];
 	TwGetParam( mBar.get(), NULL, "size", TW_PARAM_INT32, 2, size );
 
@@ -346,6 +415,52 @@ void PInterfaceGl::addPersistentParam(const std::string& name, std::vector<std::
 		: defVal;
 	persistCallbacks().push_back(
 			boost::bind( &PInterfaceGl::persistParam<int>, this, var, id ) );
+}
+
+void PInterfaceGl::showAllParams( bool visible, bool alwaysHideHelp /* = true */ )
+{
+	int windowId = 0;
+
+	while ( TwWindowExists( windowId ) )
+	{
+		TwSetCurrentWindow( windowId );
+		int barCount = TwGetBarCount();
+
+		int32_t visibleInt = visible ? 1 : 0;
+		for ( int i = 0; i < barCount; ++i )
+		{
+			TwBar *bar = TwGetBarByIndex( i );
+			TwSetParam( bar, NULL, "visible", TW_PARAM_INT32, 1, &visibleInt );
+		}
+
+		windowId++;
+	}
+
+	if ( alwaysHideHelp )
+		TwDefine( "TW_HELP visible=false" );
+}
+
+void PInterfaceGl::maximizeAllParams( bool maximized /* = true */, bool alwaysHideHelp /* = true */ )
+{
+	int windowId = 0;
+
+	while ( TwWindowExists( windowId ) )
+	{
+		TwSetCurrentWindow( windowId );
+		int barCount = TwGetBarCount();
+
+		int32_t maximizedInt = maximized ? 0 : 1;
+		for ( int i = 0; i < barCount; ++i )
+		{
+			TwBar *bar = TwGetBarByIndex( i );
+			TwSetParam( bar, NULL, "iconified", TW_PARAM_INT32, 1, &maximizedInt );
+		}
+
+		windowId++;
+	}
+
+	if ( alwaysHideHelp )
+		TwDefine( "TW_HELP visible=false" );
 }
 
 // string-color onversion by Paul Houx
@@ -419,5 +534,5 @@ void PInterfaceGl::persistColor(ci::Color *var, const std::string& paramId)
 	getXml().getChild(paramId).setValue( colorToHex( *var ) );
 }
 
-} } // namespace cinder::params
+} } // namespace mndl::params
 

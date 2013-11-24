@@ -165,6 +165,11 @@ UserManager::UserManager()
 	mJointRef = XN_SKEL_TORSO;
 }
 
+UserManager::~UserManager()
+{
+	mThread.join();
+}
+
 void UserManager::setup( const fs::path &path )
 {
 	mBrushes = loadTextures( "strokes" );
@@ -177,8 +182,7 @@ void UserManager::setup( const fs::path &path )
 
 	mThread = thread( bind( &UserManager::openKinect, this, path ) );
 
-	mParams = params::PInterfaceGl( "Kinect", Vec2i( 250, 500 ) );
-	mParams.setPosition( Vec2i( 224, 16 ) );
+	mParams = mndl::params::PInterfaceGl( "Kinect", Vec2i( 250, 500 ), Vec2i( 224, 16 ) );
 	mParams.addPersistentSizeAndPosition();
 	mParams.addText("Tracking");
 	mKinectProgress = "Connecting...\0\0\0\0\0\0\0\0\0";
@@ -234,7 +238,7 @@ void UserManager::openKinect( const fs::path &path )
 		else
 			kinect = OpenNI( path );
 		{
-			boost::lock_guard< boost::mutex > lock( mMutex );
+			std::lock_guard< std::mutex > lock( mMutex );
 			mNI = kinect;
 		}
 	}
@@ -253,7 +257,7 @@ void UserManager::openKinect( const fs::path &path )
 		mKinectProgress = "Recording loaded";
 
 	{
-		boost::lock_guard< boost::mutex > lock( mMutex );
+		std::lock_guard< std::mutex > lock( mMutex );
 		mNI.setDepthAligned();
 		mNI.start();
 		mNIUserTracker = mNI.getUserTracker();
@@ -271,7 +275,7 @@ void UserManager::update()
 	}
 
 	{
-		boost::lock_guard< boost::mutex > lock( mMutex );
+		std::lock_guard< std::mutex > lock( mMutex );
 		if ( !mNI )
 			return;
 	}
@@ -417,6 +421,7 @@ bool UserManager::getStrokeActive( XnSkeletonJoint jointId )
 	case XN_SKEL_RIGHT_KNEE     : return mStrokeActive[ RIGHT_KNEE     ];
 	case XN_SKEL_LEFT_FOOT      : return mStrokeActive[ LEFT_FOOT      ];
 	case XN_SKEL_RIGHT_FOOT     : return mStrokeActive[ RIGHT_FOOT     ];
+	default: return false;
 	}
 
 	return false;
@@ -436,6 +441,7 @@ gl::Texture UserManager::getStrokeBrush( XnSkeletonJoint jointId )
 	case XN_SKEL_RIGHT_KNEE     : if( mStrokeSelect[ RIGHT_KNEE     ] != 0 ) return mBrushes[ mStrokeSelect[ RIGHT_KNEE     ] - 1 ].second; break;
 	case XN_SKEL_LEFT_FOOT      : if( mStrokeSelect[ LEFT_FOOT      ] != 0 ) return mBrushes[ mStrokeSelect[ LEFT_FOOT      ] - 1 ].second; break;
 	case XN_SKEL_RIGHT_FOOT     : if( mStrokeSelect[ RIGHT_FOOT     ] != 0 ) return mBrushes[ mStrokeSelect[ RIGHT_FOOT     ] - 1 ].second; break;
+	default: return gl::Texture();
 	}
 
 	return gl::Texture();

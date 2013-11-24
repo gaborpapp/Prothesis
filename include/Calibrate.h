@@ -40,7 +40,7 @@ private:
 
 private:
 	// params
-	ci::params::PInterfaceGl mParams;
+	mndl::params::PInterfaceGl mParams;
 	float                    mTranslateX;
 	float                    mTranslateY;
 	float                    mScaleX;

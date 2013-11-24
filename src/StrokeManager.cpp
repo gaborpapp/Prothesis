@@ -6,7 +6,7 @@ using namespace ci::app;
 
 const int StrokeManager::sGenerateid = 100;
 
-params::PInterfaceGl StrokeManager::mParams         = params::PInterfaceGl();
+mndl::params::PInterfaceGl StrokeManager::mParams         = mndl::params::PInterfaceGl();
 float                StrokeManager::mK              = 0.06f;
 float                StrokeManager::mDamping        = 0.7f ;
 float                StrokeManager::mStrokeMinWidth = 100.0f ;
@@ -19,8 +19,7 @@ void StrokeManager::setup( Vec2i size )
 {
 	mSize   = size;
 
-	mParams = params::PInterfaceGl( "Stroke", Vec2i( 200, 150 ) );
-	mParams.setPosition( Vec2i( 16, 176 ) );
+	mParams = mndl::params::PInterfaceGl( "Stroke", Vec2i( 200, 150 ), Vec2i( 16, 176 ) );
 	mParams.addPersistentSizeAndPosition();
 
 	mParams.addPersistentParam( "Stiffness"       , &mK             , 0.06f , "min=    0.01 max=    0.2   step= 0.01" );
@@ -52,7 +51,7 @@ void StrokeManager::update()
 		stroke->setStrokeMinWidth( mStrokeMinWidth );
 		stroke->setStrokeMaxWidth( mStrokeMaxWidth );
 		stroke->setMaxVelocity   ( mMaxVelocity    );
-		stroke->resize( ResizeEvent( mSize ));
+		stroke->resize( mSize );
 		stroke->update();
 	}
 }

@@ -1,5 +1,6 @@
 #include "cinder/CinderMath.h"
 #include "cinder/Easing.h"
+#include "cinder/app/App.h"
 
 #include "Stroke.h"
 
@@ -19,9 +20,9 @@ Stroke::Stroke()
 {
 }
 
-void Stroke::resize( ResizeEvent event )
+void Stroke::resize( const ci::Vec2i &size )
 {
-	mWindowSize = event.getSize();
+	mWindowSize = size;
 }
 
 void Stroke::addPos( Vec2f pos )

@@ -30,7 +30,7 @@ class ProthesisApp : public AppBasic
 		void setupDisplays();
 		void shutdown();
 
-		void resize(ResizeEvent event);
+		void resize();
 
 		void keyDown(KeyEvent event);
 		void keyUp(KeyEvent event );
@@ -69,7 +69,7 @@ class ProthesisApp : public AppBasic
 		};
 
 		// params
-		params::PInterfaceGl mParams;
+		mndl::params::PInterfaceGl mParams;
 		float                mFps;
 		float                mFadeOutStrength;
 		int                  mBlendmode;
@@ -103,22 +103,9 @@ void ProthesisApp::setup()
 	gl::disableVerticalSync();
 
 	// params
-	fs::path paramsXml( getAssetPath( "params.xml" ));
-	if ( paramsXml.empty() )
-	{
-#if defined( CINDER_MAC )
-		fs::path assetPath( getResourcePath() / "assets" );
-#else
-		fs::path assetPath( getAppPath() / "assets" );
-#endif
-		createDirectories( assetPath );
-		paramsXml = assetPath / "params.xml" ;
-	}
+	mndl::params::PInterfaceGl::load( std::string( "params.xml" ) );
 
-	params::PInterfaceGl::load( paramsXml );
-
-	mParams = params::PInterfaceGl( "Parameters", Vec2i( 200, 150 ));
-	mParams.setPosition( Vec2i( 16, 16 ) );
+	mParams = mndl::params::PInterfaceGl( "Parameters", Vec2i( 200, 150 ), Vec2i( 16, 16 ) );
 	mParams.addPersistentSizeAndPosition();
 	mParams.addText( "Debug" );
 	mParams.addParam( "Fps", &mFps, "", true );
@@ -198,13 +185,13 @@ void ProthesisApp::setupDisplays()
 	for ( vector< DisplayRef >::const_iterator it = displays.begin();
 			it != displays.end(); ++it )
 	{
-		console() << (*it)->getArea() << " " <<
+		console() << (*it)->getBounds() << " " <<
 			(*it)->getWidth() << "x" << (*it)->getHeight() << endl;
 	}
 
 	if ( displays.size() == 1 )
 	{
-		mOutputAreaSpanning = displays[ 0 ]->getArea();
+		mOutputAreaSpanning = displays[ 0 ]->getBounds();
 		mOutputAreaWindowed = Area( 0, 0,
 				mOutputAreaSpanning.getWidth() / 2,
 				mOutputAreaSpanning.getHeight() / 2 );
@@ -213,12 +200,12 @@ void ProthesisApp::setupDisplays()
 	}
 	else
 	{
-		Area primaryArea = displays[ 0 ]->getArea();
-		Area secondaryArea = displays[ 1 ]->getArea();
+		//Area primaryArea = displays[ 0 ]->getBounds();
+		Area secondaryArea = displays[ 1 ]->getBounds();
 		mMultiSize = Vec2i( displays[ 0 ]->getWidth() + displays[ 1 ]->getWidth(),
 							math< int >::max( displays[ 0 ]->getHeight(),
 											  displays[ 1 ]->getHeight() ) );
-		int xS = displays[ 1 ]->getArea().getX1();
+		int xS = displays[ 1 ]->getBounds().getX1();
 		// secondary display on the left
 		if ( xS < 0 )
 		{
@@ -244,10 +231,10 @@ void ProthesisApp::setupDisplays()
 
 void ProthesisApp::shutdown()
 {
-	params::PInterfaceGl::save();
+	mndl::params::PInterfaceGl::save();
 }
 
-void ProthesisApp::resize( ResizeEvent event )
+void ProthesisApp::resize()
 {
 }
 
@@ -258,22 +245,23 @@ void ProthesisApp::setSpanningWindow( bool spanning )
 	if ( spanning == mSpanning )
 		return;
 
+	WindowRef w = getWindow();
 	if ( spanning )
 	{
-		lastWindowPos = getWindowPos();
-		setBorderless();
-		setWindowSize( mMultiSize.x, mMultiSize.y );
-		setWindowPos( mFullScreenPos );
-		setAlwaysOnTop();
+		lastWindowPos = w->getPos();
+		w->setBorderless();
+		w->setSize( mMultiSize.x, mMultiSize.y );
+		w->setPos( mFullScreenPos );
+		w->setAlwaysOnTop();
 		mSpanning = true;
 		mOutputArea = mOutputAreaSpanning;
 	}
 	else
 	{
-		setBorderless( false );
-		setWindowSize( mMultiSize.x / 2, mMultiSize.y / 2 );
-		setWindowPos( lastWindowPos );
-		setAlwaysOnTop( false );
+		w->setBorderless( false );
+		w->setSize( mMultiSize.x / 2, mMultiSize.y / 2 );
+		w->setPos( lastWindowPos );
+		w->setAlwaysOnTop( false );
 		mSpanning = false;
 		mOutputArea = mOutputAreaWindowed;
 	}
@@ -445,7 +433,7 @@ void ProthesisApp::draw()
 	gl::drawSolidRect( normCoverMap.map( mCalibrate.getCoverTop() ) );
 	gl::drawSolidRect( normCoverMap.map( mCalibrate.getCoverBottom() ) );
 
-	params::InterfaceGl::draw();
+	mParams.draw();
 }
 
 void ProthesisApp::showAllParams( bool show )

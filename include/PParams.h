@@ -24,26 +24,37 @@
 
 #include "cinder/params/Params.h"
 #include "cinder/Xml.h"
+#include "cinder/Utilities.h"
 
-#include <map>
-#include <string>
 #include <vector>
+#include <string>
 
 #include <boost/any.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
-#include <boost/tokenizer.hpp>
 
-namespace cinder { namespace params {
+namespace mndl { namespace params {
 
-class PInterfaceGl : public InterfaceGl {
+typedef std::shared_ptr< class PInterfaceGl > PInterfaceGlRef;
+
+class PInterfaceGl : public ci::params::InterfaceGl {
  public:
 	PInterfaceGl() {}
-	PInterfaceGl( const std::string &title, const Vec2i &size, const ColorA colorA = ColorA( 0.3f, 0.3f, 0.3f, 0.4f ) )
-		: InterfaceGl( title, size, colorA ), m_id( name2id( title ) ) {}
+	PInterfaceGl( const std::string &title, const ci::Vec2i &size,
+				  const ci::Vec2i &pos = ci::Vec2i::zero(),
+				  const ci::ColorA colorA = ci::ColorA( 0.3f, 0.3f, 0.3f, 0.4f ) );
+	PInterfaceGl( ci::app::WindowRef window,
+				  const std::string &title, const ci::Vec2i &size,
+				  const ci::Vec2i &pos = ci::Vec2i::zero(),
+				  const ci::ColorA colorA = ci::ColorA( 0.3f, 0.3f, 0.3f, 0.4f ) );
 
-	//! Moves bar to position \a pos.
-	void setPosition(const ci::Vec2i &pos);
+	static PInterfaceGlRef create( const std::string &title, const ci::Vec2i &size,
+								   const ci::Vec2i &pos = ci::Vec2i::zero(),
+								   const ci::ColorA &color = ci::ColorA( 0.3f, 0.3f, 0.3f, 0.4f ) );
+	static PInterfaceGlRef create( ci::app::WindowRef window,
+								   const std::string &title, const ci::Vec2i &size,
+								   const ci::Vec2i &pos = ci::Vec2i::zero(),
+								   const ci::ColorA &color = ci::ColorA( 0.3f, 0.3f, 0.3f, 0.4f ) );
 
 	/** Add a persistent parameter for the window size, position and iconified status
 	 * Persistent parameter will be initialized with saved value if found, or with
@@ -105,11 +116,18 @@ class PInterfaceGl : public InterfaceGl {
 	 */
 	void addPresets( std::vector< std::pair< std::string, boost::any > > &vars );
 
+	//! Shows/hides all bars except help, which is always hidden if \a alwaysHideHelp is set.
+	static void showAllParams( bool visible, bool alwaysHideHelp = true );
+
+	//! Iconifies or deiconifies all bars. Hides help is \a alwaysHideHelp is set.
+	static void maximizeAllParams( bool maximized = true, bool alwaysHideHelp = true );
+
 	/** Loads persistent params from file. At the moment this only works when
 	 * called at application start up, before creating persistent parameteres.
 	 * Will remember the filename for saving later.
 	 */
-	static void load(const fs::path& path);
+	static void load( const std::string &path = "params.xml" );
+	static void load( const ci::fs::path &path );
 
 	/** Save persistent params (to the path passed to load before). */
 	static void save();
@@ -120,11 +138,11 @@ protected:
 	// "manager"
 	struct Manager {
 		std::vector< boost::function< void() > > persistCallbacks;
-		XmlTree root;
-		fs::path filename;
+		ci::XmlTree root;
+		ci::fs::path filename;
 
 		Manager() {
-			root = XmlTree::createDoc();
+			root = ci::XmlTree::createDoc();
 		}
 	};
 
@@ -137,11 +155,11 @@ protected:
 	{
 		return manager().persistCallbacks;
 	}
-	static XmlTree& root()
+	static ci::XmlTree& root()
 	{
 		return manager().root;
 	}
-	static fs::path& filename()
+	static ci::fs::path& filename()
 	{
 		return manager().filename;
 	}
@@ -153,22 +171,21 @@ protected:
 	template<typename T>
 	void persistParam(T * var, const std::string& paramId)
 	{
-		typedef boost::tokenizer< boost::char_separator< char > > tokenizer;
-		boost::char_separator< char > sep( "/" );
-		tokenizer tok( paramId, sep );
-		// add parents if necessary
+		std::vector< std::string > tokens = ci::split( paramId, "/" );
 		std::string parentId = "";
-		for ( tokenizer::iterator it = tok.begin(); it != tok.end(); ++it )
+		for ( auto it = tokens.cbegin(); it != tokens.cend(); ++it )
 		{
 			if ( !getXml().hasChild( parentId + "/" + *it ) )
+			{
 				if ( parentId == "" )
-					getXml().push_back( XmlTree( *it, "" ) );
+					getXml().push_back( ci::XmlTree( *it, "" ) );
 				else
-					getXml().getChild( parentId ).push_back( XmlTree( *it, "" ) );
+					getXml().getChild( parentId ).push_back( ci::XmlTree( *it, "" ) );
+			}
 			parentId += "/" + *it;
 		}
 
-		getXml().getChild( paramId ).setValue( *var );
+		getXml().getChild(paramId).setValue(*var);
 	}
 
 	std::string colorToHex(const ci::ColorA &color);
@@ -177,9 +194,9 @@ protected:
 	void persistColor(ci::Color *var, const std::string& paramId);
 	void persistColorA(ci::ColorA *var, const std::string& paramId);
 
-	XmlTree& getXml() {
+	ci::XmlTree& getXml() {
 		if (!root().hasChild(m_id))
-			root().push_back(XmlTree(m_id,""));
+			root().push_back(ci::XmlTree(m_id,""));
 		return root().getChild(m_id);
 	}
 
@@ -194,21 +211,7 @@ protected:
 	void storePreset();
 	void restorePreset();
 	void removePreset();
-
-	struct FindPresetNode
-	{
-		public:
-			FindPresetNode( const std::string &tag ) : mTag( tag ) {}
-
-			bool operator()( const ci::XmlTree &node ) const
-			{
-				return node.getTag() == mTag;
-			}
-
-		private:
-			std::string mTag;
-	};
 };
 
-} } // namespace cinder::params
+} } // namespace mndl::params
 

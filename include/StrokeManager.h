@@ -39,7 +39,7 @@ private:
 	static const int         sGenerateid;
 
 	// params
-	static ci::params::PInterfaceGl mParams;
+	static mndl::params::PInterfaceGl mParams;
 	static float                    mK;
 	static float                    mDamping;
 	static float                    mStrokeMinWidth;
