@@ -8,12 +8,13 @@
 #include "cinder/gl/GlslProg.h"
 #include "cinder/Rect.h"
 #include "AntTweakBar.h"
-#include "NIUser.h"
 #include "Calibrate.h"
+#include "Kaleidoscope.h"
+#include "NIUser.h"
 #include "PParams.h"
-#include "Utils.h"
 #include "Resources.h"
 #include "StrokeManager.h"
+#include "Utils.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -84,6 +85,8 @@ class ProthesisApp : public AppBasic
 
 		void setSpanningWindow( bool spanning );
 		bool isSpanningWindow() const;
+
+		KaleidoscopeRef mKaleidoscope;
 };
 
 void ProthesisApp::prepareSettings(Settings *settings)
@@ -150,7 +153,7 @@ void ProthesisApp::setup()
 	// FIXME: enabling MSAA results in white stripes between stroke triangles
 // 	format.setSamples( 4 );
 	format.setColorInternalFormat( GL_RGBA32F_ARB );
-	format.enableColorBuffer( true, 3 );
+	format.enableColorBuffer( true, 4 );
 	mFbo = gl::Fbo( 1024, 768, format );
 	clearFbo();
 
@@ -158,6 +161,8 @@ void ProthesisApp::setup()
 
 	StrokeManager::setup( mFbo.getSize());
 	mCalibrate.setup();
+
+	mKaleidoscope = Kaleidoscope::create( mFbo.getWidth(), mFbo.getHeight() );
 
 	try
 	{
@@ -415,12 +420,34 @@ void ProthesisApp::draw()
 
 	mFbo.unbindFramebuffer();
 
+	// kaleidoscope
+
+	if ( mKaleidoscope->isEnabled() )
+	{
+		gl::Texture processed = mKaleidoscope->process( mFbo.getTexture( mFboPingPongId ) );
+		mFbo.bindFramebuffer();
+		glDrawBuffer( GL_COLOR_ATTACHMENT3 );
+		gl::clear();
+		gl::setViewport( mFbo.getBounds() );
+		gl::setMatricesWindow( mFbo.getSize(), false );
+		gl::color( Color::white() );
+		gl::draw( processed, mFbo.getBounds() );
+		mFbo.unbindFramebuffer();
+	}
+
 	// draw fbo in window
 	gl::setMatricesWindow( getWindowSize() );
 	gl::setViewport( getWindowBounds() );
 
 	gl::clear( Color::black() );
-	gl::draw( mFbo.getTexture( mFboPingPongId ), mOutputArea );
+	if ( mKaleidoscope->isEnabled() )
+	{
+		gl::draw( mFbo.getTexture( 3 ), mOutputArea );
+	}
+	else
+	{
+		gl::draw( mFbo.getTexture( mFboPingPongId ), mOutputArea );
+	}
 	mFboPingPongId = otherId;
 
 	mUserManager.drawBody( mCalibrate );
@@ -452,7 +479,15 @@ void ProthesisApp::showAllParams( bool show )
 
 void ProthesisApp::makeScreenshot()
 {
-	Surface snapshot( mFbo.getTexture( mFboPingPongId ));
+	Surface snapshot;
+	if ( mKaleidoscope->isEnabled() )
+	{
+		snapshot = Surface( mFbo.getTexture( 3 ) );
+	}
+	else
+	{
+		snapshot = Surface( mFbo.getTexture( mFboPingPongId ) );
+	}
 
 	fs::path screenshotFolder = getAppPath();
 #ifdef CINDER_MAC

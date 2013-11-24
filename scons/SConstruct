@@ -1,7 +1,8 @@
 env = Environment()
 
 env['APP_TARGET'] = 'Prothesis'
-env['APP_SOURCES'] = ['ProthesisApp.cpp', 'Calibrate.cpp', 'NIUser.cpp',
+env['APP_SOURCES'] = ['ProthesisApp.cpp', 'Calibrate.cpp',
+					'Kaleidoscope.cpp', 'NIUser.cpp',
 					'PParams.cpp', 'Stroke.cpp', 'StrokeManager.cpp',
 					'Utils.cpp']
 
